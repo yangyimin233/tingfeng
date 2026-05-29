@@ -1,0 +1,18 @@
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: tingfeng-agent
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:123456}
+      database: ${REDIS_DATABASE:1}
+
+tingfeng:
+  llm:
+    api-key: ${AI_API_KEY}
+    base-url: ${AI_BASE_URL:https://api.deepseek.com}
+    model-name: ${AI_MODEL:deepseek-v4-flash}

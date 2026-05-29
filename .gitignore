@@ -1,0 +1,41 @@
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+*.jar
+*.war
+!META-INF/
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.project
+.classpath
+.factorypath
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Environment (API Key 等敏感信息)
+.env
+*.env
+application-local.yml
+
+# Build
+build/
+out/
+.gradle/

@@ -7,12 +7,16 @@ public class TingFengProperties {
 
     private Llm llm = new Llm();
     private Memory memory = new Memory();
+    private Mysql mysql = new Mysql();
 
     public Llm getLlm() { return llm; }
     public void setLlm(Llm llm) { this.llm = llm; }
 
     public Memory getMemory() { return memory; }
     public void setMemory(Memory memory) { this.memory = memory; }
+
+    public Mysql getMysql() { return mysql; }
+    public void setMysql(Mysql mysql) { this.mysql = mysql; }
 
     public static class Llm {
         private String apiKey;
@@ -34,5 +38,28 @@ public class TingFengProperties {
 
         public int getTtlMinutes() { return ttlMinutes; }
         public void setTtlMinutes(int ttlMinutes) { this.ttlMinutes = ttlMinutes; }
+    }
+
+    public static class Mysql {
+        private String host = "localhost";
+        private int port = 3306;
+        private String user = "root";
+        private String pass = "1234";
+        private String db = "";
+
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+
+        public int getPort() { return port; }
+        public void setPort(int port) { this.port = port; }
+
+        public String getUser() { return user; }
+        public void setUser(String user) { this.user = user; }
+
+        public String getPass() { return pass; }
+        public void setPass(String pass) { this.pass = pass; }
+
+        public String getDb() { return db; }
+        public void setDb(String db) { this.db = db; }
     }
 }

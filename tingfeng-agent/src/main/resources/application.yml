@@ -18,3 +18,9 @@ tingfeng:
     model-name: ${AI_MODEL:deepseek-v4-flash}
   memory:
     ttl-minutes: ${MEMORY_TTL_MINUTES:30}
+  mysql:
+    host: ${MYSQL_HOST:localhost}
+    port: ${MYSQL_PORT:3306}
+    user: ${MYSQL_USER:root}
+    pass: ${MYSQL_PASS:1234}
+    db: ${MYSQL_DB:}

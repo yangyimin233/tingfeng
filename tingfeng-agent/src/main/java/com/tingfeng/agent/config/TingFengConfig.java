@@ -4,7 +4,7 @@ import com.tingfeng.agent.agent.TingFengOpsAgent;
 import com.tingfeng.agent.controller.TingFengChatController;
 import com.tingfeng.agent.http.DeepSeekHttpClient;
 import com.tingfeng.agent.tool.RedisDiagnosticTools;
-import dev.langchain4j.model.chat.ChatLanguageModel;
+import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -19,7 +19,7 @@ import java.time.Duration;
 public class TingFengConfig {
 
     @Bean
-    ChatLanguageModel chatLanguageModel(TingFengProperties props) {
+    ChatModel chatLanguageModel(TingFengProperties props) {
         return OpenAiChatModel.builder()
                 .apiKey(props.getApiKey())
                 .baseUrl(props.getBaseUrl())
@@ -30,10 +30,10 @@ public class TingFengConfig {
     }
 
     @Bean
-    TingFengOpsAgent tingFengOpsAgent(ChatLanguageModel model,
+    TingFengOpsAgent tingFengOpsAgent(ChatModel model,
                                       RedisDiagnosticTools redisTools) {
         return AiServices.builder(TingFengOpsAgent.class)
-                .chatLanguageModel(model)
+                .chatModel(model)
                 .tools(redisTools)
                 .build();
     }

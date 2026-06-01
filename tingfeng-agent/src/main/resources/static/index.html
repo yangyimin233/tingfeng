@@ -155,8 +155,11 @@
     <button onclick="send('给 Redis 做一个全面的体检报告')">📋 全面体检</button>
     <div class="section">自定义</div>
     <button onclick="document.getElementById('msg-input').focus()">💬 自由提问...</button>
+    <div class="section">会话</div>
+    <button onclick="newSession()">🆕 新建会话</button>
+    <div style="padding:8px 12px;font-size:10px;color:var(--dim);word-break:break-all;text-align:center" id="session-id-display"></div>
   </nav>
-  <footer>Powered by DeepSeek & LangChain4j</footer>
+  <footer>Powered by DeepSeek & LangChain4j 1.0</footer>
 </aside>
 
 <!-- 中间：对话区 -->
@@ -200,6 +203,20 @@ const sendBtn = document.getElementById('send-btn');
 const statusDot = document.getElementById('status-dot');
 const statusText = document.getElementById('status-text');
 
+// Session management
+let sessionId = sessionStorage.getItem('tingfeng-sid') || '';
+function showSessionId() {
+  var el = document.getElementById('session-id-display');
+  el.textContent = sessionId ? '会话: ' + sessionId.substring(0, 12) + '...' : '（无会话）';
+}
+showSessionId();
+function newSession() {
+  sessionId = '';
+  sessionStorage.removeItem('tingfeng-sid');
+  msgs.innerHTML = '<div class="msg agent"><strong>新会话已开始。</strong></div>';
+  showSessionId();
+}
+
 function scrollBottom() { msgs.scrollTop = msgs.scrollHeight; }
 
 function addMsg(role, html, loading) {
@@ -222,8 +239,14 @@ async function send(msg) {
   updateStatus('thinking');
 
   try {
-    const res = await fetch(API + '?msg=' + encodeURIComponent(msg));
+    var url = API + '?msg=' + encodeURIComponent(msg);
+    if (sessionId) url += '&sessionId=' + encodeURIComponent(sessionId);
+    const res = await fetch(url);
     if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+
+    var sid = res.headers.get('X-Session-Id');
+    if (sid) { sessionId = sid; sessionStorage.setItem('tingfeng-sid', sid); showSessionId(); }
+
     const text = await res.text();
     loadingDiv.remove();
     addMsg('agent', marked.parse(text));

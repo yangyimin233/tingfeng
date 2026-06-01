@@ -16,3 +16,5 @@ tingfeng:
     api-key: ${AI_API_KEY}
     base-url: ${AI_BASE_URL:https://api.deepseek.com}
     model-name: ${AI_MODEL:deepseek-v4-flash}
+  memory:
+    ttl-minutes: ${MEMORY_TTL_MINUTES:30}

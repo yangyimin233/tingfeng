@@ -48,6 +48,12 @@
             <artifactId>langchain4j-http-client-jdk</artifactId>
             <version>${langchain4j.version}</version>
         </dependency>
+
+        <!-- Caffeine 缓存 —— 管理会话 ChatMemory 生命周期（TTL + 大小上限） -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

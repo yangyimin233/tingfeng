@@ -61,44 +61,81 @@ public class TingFengConfig {
 
     @Bean
     McpToolProvider mcpToolProvider(TingFengProperties props) {
+        java.util.Map<String, String> mysqlEnv = java.util.Map.of(
+                "MYSQL_HOST", props.getMysql().getHost(),
+                "MYSQL_PORT", String.valueOf(props.getMysql().getPort()),
+                "MYSQL_USER", props.getMysql().getUser(),
+                "MYSQL_PASS", props.getMysql().getPass(),
+                "MYSQL_DB", props.getMysql().getDb()
+        );
+
+        // 1) 优先尝试社区版 MCP Server (Node.js >= 20)
+        McpClient mcpClient = tryCommunityMcpServer(mysqlEnv);
+        if (mcpClient != null) {
+            log.info("MySQL MCP Server (社区版) 就绪，连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
+            return buildProvider(mcpClient);
+        }
+
+        // 2) 社区版失败 → fallback 到自研 Java MCP Server (零外部依赖)
+        mcpClient = tryBuiltInMcpServer(mysqlEnv);
+        if (mcpClient != null) {
+            log.info("MySQL MCP Server (自研版) 就绪，连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
+            return buildProvider(mcpClient);
+        }
+
+        // 3) 都失败 → 仅使用本地 Redis 工具
+        log.warn("MySQL MCP Server 全部启动失败，仅使用本地 Redis 工具");
+        return McpToolProvider.builder().mcpClients().build();
+    }
+
+    private McpClient tryCommunityMcpServer(java.util.Map<String, String> env) {
         try {
-            // 用运行中 JVM 的 classpath 启动 MCP Server 子进程
+            log.info("尝试启动社区版 MySQL MCP Server: npx @benborla29/mcp-server-mysql");
+            return DefaultMcpClient.builder()
+                    .key("mysql-mcp-community")
+                    .transport(StdioMcpTransport.builder()
+                            .command(List.of("npx.cmd", "-y", "@benborla29/mcp-server-mysql"))
+                            .environment(env)
+                            .logEvents(true)
+                            .build())
+                    .build();
+        } catch (Exception e) {
+            log.warn("社区版 MySQL MCP Server 启动失败: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    private McpClient tryBuiltInMcpServer(java.util.Map<String, String> env) {
+        try {
             String classpath = System.getProperty("java.class.path");
             String javaExe = ProcessHandle.current()
                     .info().command()
                     .orElse(System.getProperty("java.home") + "/bin/java");
 
-            log.info("启动 MySQL MCP Server: {} -cp ... MySqlMcpServer", javaExe);
-
-            McpClient mcpClient = DefaultMcpClient.builder()
-                    .key("mysql-mcp")
+            log.info("尝试启动自研 MySQL MCP Server: {}", javaExe);
+            return DefaultMcpClient.builder()
+                    .key("mysql-mcp-builtin")
                     .transport(StdioMcpTransport.builder()
                             .command(List.of(
                                     javaExe,
                                     "-cp", classpath,
                                     "com.tingfeng.agent.mcp.MySqlMcpServer"
                             ))
-                            .environment(java.util.Map.of(
-                                    "MYSQL_HOST", props.getMysql().getHost(),
-                                    "MYSQL_PORT", String.valueOf(props.getMysql().getPort()),
-                                    "MYSQL_USER", props.getMysql().getUser(),
-                                    "MYSQL_PASS", props.getMysql().getPass(),
-                                    "MYSQL_DB", props.getMysql().getDb()
-                            ))
+                            .environment(env)
                             .logEvents(true)
                             .build())
                     .build();
-
-            log.info("MySQL MCP 客户端已启动，连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
-
-            return McpToolProvider.builder()
-                    .mcpClients(mcpClient)
-                    .failIfOneServerFails(false)   // MCP 失败不影响 Redis 本地工具
-                    .build();
         } catch (Exception e) {
-            log.warn("MySQL MCP Server 启动失败，仅使用本地工具: {}", e.getMessage());
-            return McpToolProvider.builder().mcpClients().build();  // 空 provider
+            log.warn("自研 MySQL MCP Server 启动失败: {}", e.getMessage());
+            return null;
         }
+    }
+
+    private static McpToolProvider buildProvider(McpClient client) {
+        return McpToolProvider.builder()
+                .mcpClients(client)
+                .failIfOneServerFails(false)
+                .build();
     }
 
     @Bean

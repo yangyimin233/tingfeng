@@ -24,3 +24,8 @@ tingfeng:
     user: ${MYSQL_USER:root}
     pass: ${MYSQL_PASS:1234}
     db: ${MYSQL_DB:}
+
+logging:
+  level:
+    dev.langchain4j.mcp: TRACE
+    dev.langchain4j: DEBUG

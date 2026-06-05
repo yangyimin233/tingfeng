@@ -40,6 +40,8 @@ public class TingFengConfig {
                 .baseUrl(props.getLlm().getBaseUrl())
                 .modelName(props.getLlm().getModelName())
                 .timeout(Duration.ofSeconds(60))
+                .logRequests(true)
+                .logResponses(true)
                 .httpClientBuilder(DeepSeekHttpClient.httpClientBuilder())
                 .build();
     }
@@ -61,6 +63,9 @@ public class TingFengConfig {
 
     @Bean
     McpToolProvider mcpToolProvider(TingFengProperties props) {
+
+        // 给mysql 的mcp 服务器传入 基本的环境信息
+        // 这里提一嘴，我们建议这个账号可以单独开一个只读账号
         java.util.Map<String, String> mysqlEnv = java.util.Map.of(
                 "MYSQL_HOST", props.getMysql().getHost(),
                 "MYSQL_PORT", String.valueOf(props.getMysql().getPort()),
@@ -69,17 +74,17 @@ public class TingFengConfig {
                 "MYSQL_DB", props.getMysql().getDb()
         );
 
-        // 1) 优先尝试社区版 MCP Server (Node.js >= 20)
-        McpClient mcpClient = tryCommunityMcpServer(mysqlEnv);
+        // 1) 优先自研 Java MCP Server (零外部依赖, 支持 SHOW 命令)
+        McpClient mcpClient = tryBuiltInMcpServer(mysqlEnv);
         if (mcpClient != null) {
-            log.info("MySQL MCP Server (社区版) 就绪，连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
+            log.info("MySQL MCP Server (自研版) 就绪，连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
             return buildProvider(mcpClient);
         }
 
-        // 2) 社区版失败 → fallback 到自研 Java MCP Server (零外部依赖)
-        mcpClient = tryBuiltInMcpServer(mysqlEnv);
+        // 2) 自研版失败 → fallback 到社区版 MCP Server (Node.js >= 20)
+        mcpClient = tryCommunityMcpServer(mysqlEnv);
         if (mcpClient != null) {
-            log.info("MySQL MCP Server (自研版) 就绪，连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
+            log.info("MySQL MCP Server (社区版) 就绪，连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
             return buildProvider(mcpClient);
         }
 

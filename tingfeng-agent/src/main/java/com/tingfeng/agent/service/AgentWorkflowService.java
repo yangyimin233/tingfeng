@@ -10,13 +10,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class AgentWorkflowService {
 
     private static final Logger log = LoggerFactory.getLogger(AgentWorkflowService.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final long TASK_TIMEOUT_SECONDS = 60;
 
     private final PlannerAgent planner;
     private final ExecutorAgent executor;
@@ -38,15 +43,25 @@ public class AgentWorkflowService {
             return "我是运维诊断助手，仅能处理 Redis、MySQL、服务器诊断等相关问题。请提供运维相关的排查需求。";
         }
 
-        StringBuilder notes = new StringBuilder();
+        // 并行执行所有 TODO
+        List<CompletableFuture<TaskResult>> futures = new ArrayList<>();
         for (int i = 0; i < todos.size(); i++) {
-            String todo = todos.get(i);
-            log.info("  [{}/{}] {}", i + 1, todos.size(), todo);
+            final int index = i;
+            final String todo = todos.get(i);
+            futures.add(CompletableFuture.supplyAsync(() -> executeTask(index, todo), executorPool));
+        }
+
+        // 收集结果（保持原始顺序, 带超时）
+        StringBuilder notes = new StringBuilder();
+        for (int i = 0; i < futures.size(); i++) {
             try {
-                notes.append(executor.execute(todo)).append("\n\n");
+                TaskResult result = futures.get(i).get(TASK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                notes.append(result.note).append("\n\n");
+                log.info("  [{}/{}] {}", i + 1, todos.size(), result.ok ? "OK" : "FAILED");
             } catch (Exception e) {
-                log.warn("  执行失败: {}", e.getMessage());
-                notes.append("### ").append(todo).append("\n- 执行失败: ").append(e.getMessage()).append("\n\n");
+                log.warn("  [{}/{}] 超时或异常: {}", i + 1, todos.size(), e.getMessage());
+                notes.append("### ").append(todos.get(i))
+                     .append("\n- 执行超时或异常: ").append(e.getMessage()).append("\n\n");
             }
         }
 
@@ -76,24 +91,49 @@ public class AgentWorkflowService {
                 return;
             }
 
-            StringBuilder notes = new StringBuilder();
+            // 批量发送所有 task-start
             for (int i = 0; i < todos.size(); i++) {
-                String todo = todos.get(i);
                 emitter.send(event("task-start",
                         String.format("{\"index\":%d,\"total\":%d,\"title\":\"%s\"}",
-                                i + 1, todos.size(), escapeJson(todo))));
+                                i + 1, todos.size(), escapeJson(todos.get(i)))));
+            }
 
-                try {
-                    String note = executor.execute(todo);
-                    notes.append(note).append("\n\n");
-                    emitter.send(event("task-done",
-                            String.format("{\"index\":%d,\"note\":\"%s\"}",
-                                    i + 1, escapeJson(truncate(note, 300)))));
-                } catch (Exception e) {
-                    notes.append("### ").append(todo).append("\n- 执行失败: ").append(e.getMessage()).append("\n\n");
-                    emitter.send(event("task-error",
-                            String.format("{\"index\":%d,\"error\":\"%s\"}", i + 1, escapeJson(e.getMessage()))));
-                }
+            // 并行执行
+            List<CompletableFuture<TaskResult>> futures = new ArrayList<>();
+            for (int i = 0; i < todos.size(); i++) {
+                final int index = i;
+                final String todo = todos.get(i);
+                futures.add(CompletableFuture.supplyAsync(() -> executeTask(index, todo), executorPool)
+                        .orTimeout(TASK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .exceptionally(ex -> new TaskResult(
+                                "### " + todo + "\n- 执行超时或异常: " + ex.getMessage(), false))
+                        .thenApply(result -> {
+                            synchronized (emitter) {
+                                try {
+                                    if (result.ok) {
+                                        emitter.send(event("task-done",
+                                                String.format("{\"index\":%d,\"note\":\"%s\"}",
+                                                        index + 1, escapeJson(truncate(result.note, 300)))));
+                                    } else {
+                                        emitter.send(event("task-error",
+                                                String.format("{\"index\":%d,\"error\":\"%s\"}",
+                                                        index + 1, escapeJson(result.note))));
+                                    }
+                                } catch (IOException e) {
+                                    log.warn("SSE 推送失败: {}", e.getMessage());
+                                }
+                            }
+                            return result;
+                        }));
+            }
+
+            // 等待全部完成（兜底超时 = 单任务超时 + 5s）
+            CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
+                    .get(TASK_TIMEOUT_SECONDS + 5, TimeUnit.SECONDS);
+
+            StringBuilder notes = new StringBuilder();
+            for (CompletableFuture<TaskResult> f : futures) {
+                notes.append(f.join().note).append("\n\n");
             }
 
             emitter.send(event("phase", "汇总中... 正在生成报告"));
@@ -116,14 +156,31 @@ public class AgentWorkflowService {
         }
     }
 
+    // ── 并行任务执行 ──
+
+    private record TaskResult(String note, boolean ok) {}
+
+    private final java.util.concurrent.ExecutorService executorPool =
+            Executors.newFixedThreadPool(4);
+
+    private TaskResult executeTask(int index, String todo) {
+        try {
+            String note = executor.execute(todo);
+            return new TaskResult(note, true);
+        } catch (Exception e) {
+            log.warn("  [{}] 执行失败: {}", index + 1, e.getMessage());
+            return new TaskResult("### " + todo + "\n- 执行失败: " + e.getMessage(), false);
+        }
+    }
+
     // ── Planner 调用 + JSON 解析 ──
+
     @SuppressWarnings("unchecked")
     private List<String> plan(String msg) {
         String raw = planner.plan(msg);
         log.info("Planner 原始输出: {}", raw);
         try {
             String json = raw.trim();
-            // 剔除 LLM 可能在 JSON 外包裹的 markdown 标记
             if (json.startsWith("```")) {
                 json = json.replaceAll("```json|```", "").trim();
             }
@@ -135,6 +192,7 @@ public class AgentWorkflowService {
     }
 
     // ── SSE 工具方法 ──
+
     private SseEmitter.SseEventBuilder event(String name, Object data) {
         return SseEmitter.event().name(name).data(data);
     }

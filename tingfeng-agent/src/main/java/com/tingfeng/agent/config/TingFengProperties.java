@@ -8,6 +8,8 @@ public class TingFengProperties {
     private Llm llm = new Llm();
     private Memory memory = new Memory();
     private Mysql mysql = new Mysql();
+    private Executor executor = new Executor();
+    private Ollama ollama = new Ollama();
 
     public Llm getLlm() { return llm; }
     public void setLlm(Llm llm) { this.llm = llm; }
@@ -17,6 +19,12 @@ public class TingFengProperties {
 
     public Mysql getMysql() { return mysql; }
     public void setMysql(Mysql mysql) { this.mysql = mysql; }
+
+    public Executor getExecutor() { return executor; }
+    public void setExecutor(Executor executor) { this.executor = executor; }
+
+    public Ollama getOllama() { return ollama; }
+    public void setOllama(Ollama ollama) { this.ollama = ollama; }
 
     public static class Llm {
         private String apiKey;
@@ -38,6 +46,28 @@ public class TingFengProperties {
 
         public int getTtlMinutes() { return ttlMinutes; }
         public void setTtlMinutes(int ttlMinutes) { this.ttlMinutes = ttlMinutes; }
+    }
+
+    public static class Executor {
+        private String provider = "cloud";
+        private int timeoutSeconds = 60;
+
+        public String getProvider() { return provider; }
+        public void setProvider(String provider) { this.provider = provider; }
+
+        public int getTimeoutSeconds() { return timeoutSeconds; }
+        public void setTimeoutSeconds(int timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }
+    }
+
+    public static class Ollama {
+        private String baseUrl = "http://localhost:11434/v1";
+        private String modelName = "deepseek-r1:8b";
+
+        public String getBaseUrl() { return baseUrl; }
+        public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
+
+        public String getModelName() { return modelName; }
+        public void setModelName(String modelName) { this.modelName = modelName; }
     }
 
     public static class Mysql {

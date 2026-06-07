@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tingfeng.agent.agent.ExecutorAgent;
 import com.tingfeng.agent.agent.PlannerAgent;
 import com.tingfeng.agent.agent.ReporterAgent;
+import com.tingfeng.agent.config.TingFengProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -21,16 +22,20 @@ public class AgentWorkflowService {
 
     private static final Logger log = LoggerFactory.getLogger(AgentWorkflowService.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final long TASK_TIMEOUT_SECONDS = 60;
 
     private final PlannerAgent planner;
     private final ExecutorAgent executor;
     private final ReporterAgent reporter;
+    private final int taskTimeoutSeconds;
 
-    public AgentWorkflowService(PlannerAgent planner, ExecutorAgent executor, ReporterAgent reporter) {
+    public AgentWorkflowService(PlannerAgent planner,
+                                 ExecutorAgent executor,
+                                 ReporterAgent reporter,
+                                 TingFengProperties props) {
         this.planner = planner;
         this.executor = executor;
         this.reporter = reporter;
+        this.taskTimeoutSeconds = props.getExecutor().getTimeoutSeconds();
     }
 
     public String diagnose(String msg) {
@@ -55,7 +60,7 @@ public class AgentWorkflowService {
         StringBuilder notes = new StringBuilder();
         for (int i = 0; i < futures.size(); i++) {
             try {
-                TaskResult result = futures.get(i).get(TASK_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                TaskResult result = futures.get(i).get(taskTimeoutSeconds, TimeUnit.SECONDS);
                 notes.append(result.note).append("\n\n");
                 log.info("  [{}/{}] {}", i + 1, todos.size(), result.ok ? "OK" : "FAILED");
             } catch (Exception e) {
@@ -104,7 +109,7 @@ public class AgentWorkflowService {
                 final int index = i;
                 final String todo = todos.get(i);
                 futures.add(CompletableFuture.supplyAsync(() -> executeTask(index, todo), executorPool)
-                        .orTimeout(TASK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .orTimeout(taskTimeoutSeconds, TimeUnit.SECONDS)
                         .exceptionally(ex -> new TaskResult(
                                 "### " + todo + "\n- 执行超时或异常: " + ex.getMessage(), false))
                         .thenApply(result -> {
@@ -129,7 +134,7 @@ public class AgentWorkflowService {
 
             // 等待全部完成（兜底超时 = 单任务超时 + 5s）
             CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new))
-                    .get(TASK_TIMEOUT_SECONDS + 5, TimeUnit.SECONDS);
+                    .get(taskTimeoutSeconds + 5, TimeUnit.SECONDS);
 
             StringBuilder notes = new StringBuilder();
             for (CompletableFuture<TaskResult> f : futures) {

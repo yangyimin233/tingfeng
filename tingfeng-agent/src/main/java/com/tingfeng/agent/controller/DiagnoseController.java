@@ -20,10 +20,12 @@ public class DiagnoseController {
         this.workflowService = workflowService;
     }
 
-    @GetMapping("/chat")
-    public String diagnose(@RequestParam String msg) {
-        return workflowService.diagnose(msg);
-    }
+
+    // 目前已换用下面的流式输出接口了，其service执行等效普通的 diagnose + 一个emitter 能异步输出一些signal 供前端 绘制 状态信息
+//    @GetMapping("/chat")
+//    public String diagnose(@RequestParam String msg) {
+//        return workflowService.diagnose(msg);
+//    }
 
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(@RequestParam String msg) {

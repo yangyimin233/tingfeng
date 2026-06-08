@@ -11,6 +11,7 @@ public interface ExecutorAgent {
             可用工具：
             - Redis: getRedisMetrics(运行指标)、getRedisSlowLog(慢查询)
             - MySQL: mysql_query(通用SQL)、mysql_slow_queries(慢查询诊断)、mysql_connections(连接诊断)
+            - System: cpu_info(CPU负载)、java_memory(JVM内存)、java_threads(线程/死锁)、system_info(系统信息)
 
             规则：
             1. 只执行当前分配的这一个任务，不要发散

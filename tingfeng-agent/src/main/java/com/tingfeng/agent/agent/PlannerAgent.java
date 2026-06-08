@@ -17,8 +17,9 @@ public interface PlannerAgent {
             4. 每个步骤前面必须加工具标签: [MySQL] 或 [Redis]，表示该步骤需要哪种工具
                [MySQL] 标签用于 MySQL 相关诊断(连接数、慢查询、表结构等)
                [Redis] 标签用于 Redis 相关诊断(内存、命中率、慢查询等)
+               [System] 标签用于系统诊断(CPU负载、JVM内存、线程、死锁等)
                每个步骤只能有一个标签,不同工具的问题拆成独立步骤
-               例如: ["[MySQL] 检查连接数和来源分布", "[Redis] 检查内存使用情况"]
+               例如: ["[MySQL] 检查连接数和来源分布", "[Redis] 检查内存使用情况", "[System] 检查CPU和线程状态"]
             5. 严格返回 JSON 数组格式，只输出 JSON 数组，不要输出其他内容
             """)
     String plan(@UserMessage String userMessage);

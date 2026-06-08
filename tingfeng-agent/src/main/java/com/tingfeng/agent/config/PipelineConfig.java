@@ -10,6 +10,7 @@ import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,7 +33,7 @@ public class PipelineConfig {
     @Bean
     ExecutorAgent mysqlExecutor(TingFengProperties props,
                                  ChatModel cloudModel,
-                                 McpToolProvider mcpToolProvider) {
+                                 @Qualifier("mysqlMcpToolProvider") McpToolProvider mcpToolProvider) {
         ChatModel model = selectModel(props, cloudModel);
         log.info("MySQL Executor 模型: {}", modelLabel(props));
         return AiServices.builder(ExecutorAgent.class)
@@ -50,6 +51,18 @@ public class PipelineConfig {
         return AiServices.builder(ExecutorAgent.class)
                 .chatModel(model)
                 .tools(redisTools)
+                .build();
+    }
+
+    @Bean
+    ExecutorAgent systemExecutor(TingFengProperties props,
+                                  ChatModel cloudModel,
+                                  @Qualifier("cpuMcpToolProvider") McpToolProvider mcpToolProvider) {
+        ChatModel model = selectModel(props, cloudModel);
+        log.info("System Executor 模型: {}", modelLabel(props));
+        return AiServices.builder(ExecutorAgent.class)
+                .chatModel(model)
+                .toolProvider(mcpToolProvider)
                 .build();
     }
 

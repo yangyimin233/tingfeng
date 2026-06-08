@@ -27,6 +27,7 @@ public class AgentWorkflowService {
     private final PlannerAgent planner;
     private final ExecutorAgent mysqlExecutor;
     private final ExecutorAgent redisExecutor;
+    private final ExecutorAgent systemExecutor;
     private final ExecutorAgent fullExecutor;
     private final ReporterAgent reporter;
     private final RagService ragService;
@@ -35,6 +36,7 @@ public class AgentWorkflowService {
     public AgentWorkflowService(PlannerAgent planner,
                                  @Qualifier("mysqlExecutor") ExecutorAgent mysqlExecutor,
                                  @Qualifier("redisExecutor") ExecutorAgent redisExecutor,
+                                 @Qualifier("systemExecutor") ExecutorAgent systemExecutor,
                                  @Qualifier("fullExecutor") ExecutorAgent fullExecutor,
                                  ReporterAgent reporter,
                                  RagService ragService,
@@ -42,6 +44,7 @@ public class AgentWorkflowService {
         this.planner = planner;
         this.mysqlExecutor = mysqlExecutor;
         this.redisExecutor = redisExecutor;
+        this.systemExecutor = systemExecutor;
         this.fullExecutor = fullExecutor;
         this.reporter = reporter;
         this.ragService = ragService;
@@ -182,12 +185,14 @@ public class AgentWorkflowService {
         // 按标签路由 Executor, 同时剥离标签
         boolean hasMysql = todo.contains("[MySQL]");
         boolean hasRedis = todo.contains("[Redis]");
-        String cleanTask = todo.replaceAll("\\[MySQL\\]\\s*|\\[Redis\\]\\s*", "").trim();
+        boolean hasSystem = todo.contains("[System]");
+        int tagCount = (hasMysql ? 1 : 0) + (hasRedis ? 1 : 0) + (hasSystem ? 1 : 0);
+        String cleanTask = todo.replaceAll("\\[MySQL\\]\\s*|\\[Redis\\]\\s*|\\[System\\]\\s*", "").trim();
         ExecutorAgent executor;
-        if (hasMysql && !hasRedis) {
-            executor = mysqlExecutor;
-        } else if (hasRedis && !hasMysql) {
-            executor = redisExecutor;
+        if (tagCount == 1) {
+            if (hasMysql) executor = mysqlExecutor;
+            else if (hasRedis) executor = redisExecutor;
+            else executor = systemExecutor;
         } else {
             executor = fullExecutor;  // 无标签或跨域 → 全工具兜底
         }

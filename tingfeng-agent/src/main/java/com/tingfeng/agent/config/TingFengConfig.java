@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -61,36 +62,77 @@ public class TingFengConfig {
         );
     }
 
-    @Bean
-    McpToolProvider mcpToolProvider(TingFengProperties props) {
+    // ── MCP Client Bean: MySQL ──
 
-        // 给mysql 的mcp 服务器传入 基本的环境信息
-        // 这里提一嘴，我们建议这个账号可以单独开一个只读账号
-        java.util.Map<String, String> mysqlEnv = java.util.Map.of(
+    @Bean
+    McpClient mysqlMcpClient(TingFengProperties props) {
+        java.util.Map<String, String> env = java.util.Map.of(
                 "MYSQL_HOST", props.getMysql().getHost(),
                 "MYSQL_PORT", String.valueOf(props.getMysql().getPort()),
                 "MYSQL_USER", props.getMysql().getUser(),
                 "MYSQL_PASS", props.getMysql().getPass(),
                 "MYSQL_DB", props.getMysql().getDb()
         );
-
-        // 1) 优先自研 Java MCP Server (零外部依赖, 支持 SHOW 命令)
-        McpClient mcpClient = tryBuiltInMcpServer(mysqlEnv);
-        if (mcpClient != null) {
-            log.info("MySQL MCP Server (自研版) 就绪，连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
-            return buildProvider(mcpClient);
+        McpClient client = tryBuiltInMcpServer(env);
+        if (client != null) {
+            log.info("MySQL MCP Server (自研版) 就绪, 连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
+            return client;
         }
-
-        // 2) 自研版失败 → fallback 到社区版 MCP Server (Node.js >= 20)
-        mcpClient = tryCommunityMcpServer(mysqlEnv);
-        if (mcpClient != null) {
-            log.info("MySQL MCP Server (社区版) 就绪，连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
-            return buildProvider(mcpClient);
+        client = tryCommunityMcpServer(env);
+        if (client != null) {
+            log.info("MySQL MCP Server (社区版) 就绪, 连接 {}:{}", props.getMysql().getHost(), props.getMysql().getPort());
+            return client;
         }
+        log.warn("MySQL MCP Server 全部启动失败");
+        return null;
+    }
 
-        // 3) 都失败 → 仅使用本地 Redis 工具
-        log.warn("MySQL MCP Server 全部启动失败，仅使用本地 Redis 工具");
-        return McpToolProvider.builder().mcpClients().build();
+    @Bean
+    McpToolProvider mysqlMcpToolProvider(McpClient mysqlMcpClient) {
+        return buildProvider(mysqlMcpClient);
+    }
+
+    // ── MCP Client Bean: CPU ──
+
+    @Bean
+    McpClient cpuMcpClient() {
+        try {
+            String classpath = System.getProperty("java.class.path");
+            String javaExe = ProcessHandle.current()
+                    .info().command()
+                    .orElse(System.getProperty("java.home") + "/bin/java");
+            log.info("启动 CPU MCP Server: {} ... CpuMcpServer", javaExe);
+            return DefaultMcpClient.builder()
+                    .key("cpu-mcp")
+                    .transport(StdioMcpTransport.builder()
+                            .command(List.of(javaExe, "-cp", classpath,
+                                    "com.tingfeng.agent.mcp.CpuMcpServer"))
+                            .logEvents(true)
+                            .build())
+                    .build();
+        } catch (Exception e) {
+            log.warn("CPU MCP Server 启动失败: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    @Bean
+    McpToolProvider cpuMcpToolProvider(McpClient cpuMcpClient) {
+        return buildProvider(cpuMcpClient);
+    }
+
+    // ── 全工具 McpToolProvider (fullExecutor 兜底) ──
+
+    @Bean
+    McpToolProvider mcpToolProvider(McpClient mysqlMcpClient,
+                                     McpClient cpuMcpClient) {
+        List<McpClient> clients = new ArrayList<>();
+        if (mysqlMcpClient != null) clients.add(mysqlMcpClient);
+        if (cpuMcpClient != null) clients.add(cpuMcpClient);
+        return McpToolProvider.builder()
+                .mcpClients(clients.toArray(McpClient[]::new))
+                .failIfOneServerFails(false)
+                .build();
     }
 
     private McpClient tryCommunityMcpServer(java.util.Map<String, String> env) {

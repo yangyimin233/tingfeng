@@ -62,12 +62,16 @@ public class TingFengProperties {
     public static class Ollama {
         private String baseUrl = "http://localhost:11434/v1";
         private String modelName = "deepseek-r1:8b";
+        private String embeddingModel = "bge-m3";
 
         public String getBaseUrl() { return baseUrl; }
         public void setBaseUrl(String baseUrl) { this.baseUrl = baseUrl; }
 
         public String getModelName() { return modelName; }
         public void setModelName(String modelName) { this.modelName = modelName; }
+
+        public String getEmbeddingModel() { return embeddingModel; }
+        public void setEmbeddingModel(String embeddingModel) { this.embeddingModel = embeddingModel; }
     }
 
     public static class Mysql {

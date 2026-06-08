@@ -26,15 +26,18 @@ public class AgentWorkflowService {
     private final PlannerAgent planner;
     private final ExecutorAgent executor;
     private final ReporterAgent reporter;
+    private final RagService ragService;
     private final int taskTimeoutSeconds;
 
     public AgentWorkflowService(PlannerAgent planner,
                                  ExecutorAgent executor,
                                  ReporterAgent reporter,
+                                 RagService ragService,
                                  TingFengProperties props) {
         this.planner = planner;
         this.executor = executor;
         this.reporter = reporter;
+        this.ragService = ragService;
         this.taskTimeoutSeconds = props.getExecutor().getTimeoutSeconds();
     }
 
@@ -42,7 +45,7 @@ public class AgentWorkflowService {
         long start = System.currentTimeMillis();
         log.info("=== Pipeline 诊断开始 ===");
 
-        List<String> todos = plan(msg);
+        List<String> todos = planWithRag(msg);
         if (todos.isEmpty()) {
             log.info("非运维问题，已拦截");
             return "我是运维诊断助手，仅能处理 Redis、MySQL、服务器诊断等相关问题。请提供运维相关的排查需求。";
@@ -87,7 +90,7 @@ public class AgentWorkflowService {
         try {
             emitter.send(event("phase", "规划中... 正在分析问题"));
 
-            List<String> todos = plan(msg);
+            List<String> todos = planWithRag(msg);
             emitter.send(event("plan", todos));
 
             if (todos.isEmpty()) {
@@ -176,6 +179,23 @@ public class AgentWorkflowService {
             log.warn("  [{}] 执行失败: {}", index + 1, e.getMessage());
             return new TaskResult("### " + todo + "\n- 执行失败: " + e.getMessage(), false);
         }
+    }
+
+    private List<String> planWithRag(String msg) {
+        String ragContext = buildRagContext(msg);
+        String enriched = ragContext.isEmpty() ? msg
+                : ragContext + "\n\n根据以上参考知识，为以下问题制定排查计划：\n" + msg;
+        return plan(enriched);
+    }
+
+    private String buildRagContext(String query) {
+        List<String> results = ragService.search(query, 3);
+        if (results.isEmpty()) return "";
+        StringBuilder sb = new StringBuilder("[参考知识]\n");
+        for (int i = 0; i < results.size(); i++) {
+            sb.append(i + 1).append(". ").append(results.get(i)).append("\n");
+        }
+        return sb.toString();
     }
 
     // ── Planner 调用 + JSON 解析 ──

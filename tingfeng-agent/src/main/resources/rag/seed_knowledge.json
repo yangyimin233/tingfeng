@@ -1,0 +1,102 @@
+[
+  {
+    "title": "MySQL 连接数突然飙升如何排查",
+    "content": "排查步骤: 1) SHOW PROCESSLIST 查看当前连接来源和状态; 2) SHOW VARIABLES LIKE 'max_connections' 确认上限; 3) 检查应用连接池配置 (HikariCP/Druid maximumPoolSize); 4) 检查是否有未关闭的连接 (Sleep 状态长时间不释放); 5) 查看慢查询日志确认是否有阻塞SQL. 常见原因: 连接池配置过小导致排队、慢SQL阻塞导致连接堆积、应用代码未释放连接. 紧急处理: KILL 空闲连接, 临时调大 max_connections, 重启异常应用节点."
+  },
+  {
+    "title": "MySQL 慢查询诊断标准流程",
+    "content": "诊断流程: 1) SHOW VARIABLES LIKE 'slow_query_log%' 确认慢查询日志是否开启; 2) SHOW VARIABLES LIKE 'long_query_time' 查看阈值; 3) 读取 mysql.slow_log 表获取最近慢查询; 4) 对慢SQL执行 EXPLAIN 分析执行计划; 5) 检查是否缺少索引 (type=ALL 全表扫描); 6) 检查索引选择性 (rows 扫描行数是否异常). 优化建议: 添加覆盖索引避免回表、改写子查询为 JOIN、避免 SELECT * 减少数据传输、对大表考虑分区."
+  },
+  {
+    "title": "Redis 内存突然增长排查",
+    "content": "排查步骤: 1) INFO memory 查看 used_memory_rss_human 和 used_memory_human; 2) INFO stats 查看 evicted_keys 是否被驱逐; 3) DBSIZE 确认当前键数量; 4) 使用 MEMORY USAGE <key> 检查大key; 5) 检查是否有未设置过期时间的 key (TTL key 返回 -1); 6) INFO keyspace 查看各库键空间分布. 处理: 设置 maxmemory 和 maxmemory-policy (建议 allkeys-lru)、拆分大key为多个小key、对不重要的数据设置合理过期时间."
+  },
+  {
+    "title": "Redis 缓存命中率低如何分析",
+    "content": "分析步骤: 1) INFO stats 获取 keyspace_hits 和 keyspace_misses; 2) 命中率 = hits / (hits + misses) * 100%, 建议 >90%; 3) 命中率低的原因: 缓存数据从未被访问(冷数据过多)、过期策略导致频繁淘汰、key设计不合理导致缓存穿透、业务访问模式变化; 4) 检查 evicted_keys 是否持续增长; 5) MONITOR 命令采样查看实际访问模式. 优化: 预热缓存、增加内存容量、引入布隆过滤器防穿透、对热点key做本地缓存."
+  },
+  {
+    "title": "MySQL 死锁排查方法",
+    "content": "排查: 1) SHOW ENGINE INNODB STATUS 查看 LATEST DETECTED DEADLOCK 部分; 2) 开启 innodb_print_all_deadlocks=ON 将所有死锁记录到错误日志; 3) SELECT * FROM information_schema.INNODB_TRX 查看当前事务; 4) 检查应用日志确认死锁发生的SQL. 预防: 确保事务中表的访问顺序一致、尽量缩短事务(减少锁持有时间)、使用索引减少锁范围、考虑使用 READ COMMITTED 隔离级别降低间隙锁."
+  },
+  {
+    "title": "MySQL InnoDB 缓冲池命中率诊断",
+    "content": "诊断: 1) SHOW STATUS LIKE 'Innodb_buffer_pool_read%'; 2) 命中率 = (Innodb_buffer_pool_read_requests - Innodb_buffer_pool_reads) / Innodb_buffer_pool_read_requests * 100%; 3) 建议命中率 > 99%; 4) 如果 Innodb_buffer_pool_reads 持续增长说明缓冲池不够大; 5) SHOW VARIABLES LIKE 'innodb_buffer_pool_size' 查看当前配置; 6) 对比数据库数据文件总大小, 建议缓冲池为数据大小的 70-80%. 优化: 增大 innodb_buffer_pool_size (通常设为物理内存的 50-80%)."
+  },
+  {
+    "title": "MySQL 主从复制延迟排查",
+    "content": "排查: 1) SHOW SLAVE STATUS 查看 Seconds_Behind_Master; 2) 检查 Slave_IO_Running 和 Slave_SQL_Running 是否都为 Yes; 3) 查看 Relay_Log_Space 和 Retrieved_Gtid_Set; 4) 从库 SHOW PROCESSLIST 查看是否有长时间运行的查询阻塞复制; 5) 检查主库 binlog 写入量 (SHOW MASTER STATUS). 常见原因: 从库硬件性能不足(IO瓶颈)、大事务导致单条SQL回放慢、从库承担大量读请求. 优化: 升级从库硬件、拆分大事务、启用并行复制 slave_parallel_workers > 1."
+  },
+  {
+    "title": "Redis 慢查询排查",
+    "content": "排查: 1) SLOWLOG GET 20 获取最近20条慢命令; 2) CONFIG GET slowlog-log-slower-than 查看阈值(默认10000微秒=10ms); 3) 问题命令: KEYS *(阻塞,应用中禁止)、SMEMBERS 大集合、HGETALL 大哈希、ZRANGE 大有序集; 4) 检查是否有不合理的 DEL 操作(大key删除会阻塞). 优化: 用 SCAN 替代 KEYS、HSCAN/SSCAN/ZSCAN 分页读取、将大集合拆分为多个小集合、设置合理的 slowlog 阈值(生产建议1ms)."
+  },
+  {
+    "title": "Java 应用 CPU 飙升排查",
+    "content": "排查步骤: 1) top -H -p <pid> 找到占用CPU最高的线程; 2) printf '%x\n' <tid> 转换为16进制; 3) jstack <pid> | grep -A 20 <nid> 查看线程堆栈; 4) 使用 arthas 的 thread -n 3 直接看最忙线程; 5) 检查GC日志 (jstat -gcutil <pid> 1000) 确认是否频繁FullGC; 6) arthas dashboard 查看整体JVM状态. 常见原因: 死循环/无限递归、正则表达式回溯爆炸、频繁FullGC、HashMap 链表退化、日志框架锁竞争."
+  },
+  {
+    "title": "MySQL 表数据量大导致查询慢优化",
+    "content": "诊断: 1) EXPLAIN SELECT ... 查看执行计划,关注 type/rows/Extra; 2) 检查是否全表扫描(type=ALL); 3) SHOW INDEX FROM table 查看现有索引; 4) 查看表数据量 SELECT COUNT(*) 和占用空间. 优化方案: 1) 添加合适索引(遵循最左前缀原则); 2) 对大表(>500万行)考虑水平分表; 3) 冷热数据分离归档; 4) 使用覆盖索引避免回表; 5) 查询添加合理 LIMIT; 6) 对历史数据使用分区表按月分区. 紧急方案: pt-online-schema-change 在线加索引."
+  },
+  {
+    "title": "Redis 内存碎片率异常处理",
+    "content": "诊断: 1) INFO memory 查看 mem_fragmentation_ratio; 2) 正常范围 1.0-1.5, 超过2.0说明碎片严重; 3) 碎片率过高: 频繁的删除和过期操作导致内存不连续; 4) 碎片率过低(接近0.5): Redis使用了大量swap. 处理: 1) 碎片率过高: CONFIG SET activedefrag yes 启用主动碎片整理; 2) 或导出数据后重启Redis重新加载; 3) 碎片率过低: 增大 maxmemory 或减少数据量; 4) 使用 jemalloc 替换 libc (Redis 4.0+默认使用)."
+  },
+  {
+    "title": "MySQL 锁等待超时分析",
+    "content": "分析: 1) SELECT * FROM information_schema.INNODB_TRX 查看活跃事务; 2) SELECT * FROM information_schema.INNODB_LOCKS (5.7) 或 performance_schema.data_locks (8.0) 查看锁; 3) SELECT * FROM information_schema.INNODB_LOCK_WAITS (5.7) 或 performance_schema.data_lock_waits (8.0) 查看锁等待关系; 4) SHOW VARIABLES LIKE 'innodb_lock_wait_timeout' 查看超时配置; 5) 找出阻塞者: 哪个事务持锁但不释放. 处理: KILL 阻塞事务、减小事务粒度避免长事务、优化SQL消除全表扫描锁."
+  },
+  {
+    "title": "Redis 连接数过高排查",
+    "content": "排查: 1) INFO clients 查看 connected_clients 和 rejected_connections; 2) 检查 maxclients 配置; 3) CLIENT LIST 查看连接来源 (addr字段); 4) TCP 连接状态: netstat -an | grep 6379 | wc -l; 5) 检查应用是否有连接泄漏(大量 TIME_WAIT). 常见原因: 连接池未正确释放、应用层未设置连接超时、Redis服务端 maxclients 过低. 处理: 应用端检查连接池配置、设置 client-timeout 淘汰闲置连接、加大 maxclients 上限."
+  },
+  {
+    "title": "MySQL EXPLAIN 执行计划解读",
+    "content": "关键字段: 1) type: 从好到差 (system>const>eq_ref>ref>range>index>ALL), 至少要达到 range 级别; 2) key: 实际使用的索引, 为NULL表示未使用索引; 3) rows: 预估扫描行数, 越小越好; 4) Extra: Using index(覆盖索引,好)、Using filesort(文件排序,差)、Using temporary(临时表,差)、Using where(需要回表过滤); 5) key_len: 索引使用长度, 越大说明复合索引利用越充分. 优化目标: type进前三级、Extra无filesort/temporary、rows尽量小."
+  },
+  {
+    "title": "数据库连接池配置最佳实践",
+    "content": "HikariCP 推荐: maximumPoolSize = ((CPU核数 * 2) + 磁盘数), 经验公式: 每10个连接可支持约100-200 QPS; minimumIdle 与 maximumPoolSize 保持一致避免频繁创建; connectionTimeout 建议 30000ms (业务容忍的最大等待时间); idleTimeout 600000 (10分钟); maxLifetime 1800000 (30分钟, 应小于数据库 wait_timeout); leakDetectionThreshold 60000 (检测连接泄漏). 告警阈值: 活跃连接 > 80% maximumPoolSize 时应扩容或排查慢SQL; 等待获取连接时间 > 1s 应关注."
+  },
+  {
+    "title": "MySQL 通用查询日志与慢查询日志的区别",
+    "content": "通用查询日志(general_log): 记录所有客户端连接和SQL请求, 开销大(IO密集), 仅调试时临时开启; 查看: SHOW VARIABLES LIKE 'general_log%'; 不建议生产开启. 慢查询日志(slow_query_log): 只记录执行时间超过 long_query_time 的SQL, 开销可控; 建议生产开启 slow_query_log=ON, long_query_time=1 (视业务调整, 0.5~2秒); log_output=TABLE 方便查询, 或 FILE 减少磁盘竞争. 两者都可以通过 SET GLOBAL 动态修改."
+  },
+  {
+    "title": "故障排查通用方法论",
+    "content": "黄金法则: 1) 先定位范围: 应用层/数据库层/网络层/硬件层; 2) 看时间线: 问题什么时候开始? 有没有变更上线? 3) 看指标: CPU/内存/IO/网络/QPS/错误率; 4) 隔离: 是个别节点还是全部? 个别接口还是全部? 5) 止血: 先恢复再分析原因; 6) 保留现场: 备份日志、dump堆栈、保存监控截图; 7) 复盘: 5 Why 分析法找到根因. 常用组合: 连接问题 → MySQL连接数 → 慢查询 → 索引 → 锁等待; 内存问题 → Redis INFO → 大key → 过期策略 → 容量规划."
+  },
+  {
+    "title": "Redis 和 MySQL 缓存一致性方案",
+    "content": "方案对比: 1) Cache Aside: 读时先查缓存miss再查DB并回写; 写时先更新DB再删除缓存(推荐!); 顺序错误(先删缓存再写DB)会导致缓存击穿. 2) 延迟双删: 写DB后等一段时间再删一次缓存; 3) 订阅binlog: Canal/Debezium 监听MySQL binlog → 异步更新Redis; 最终一致性, 延迟通常在100ms内. 4) 分布式事务(Seata): 强一致性但性能差. 推荐: 一般业务用 Cache Aside + 延迟双删; 高一致性场景用 binlog 订阅异步更新; 评估是否需要实时一致."
+  },
+  {
+    "title": "MySQL 索引优化原则",
+    "content": "核心原则: 1) 最左前缀: 复合索引 (a,b,c), 查询条件必须从 a 开始才能用到索引; 2) 高选择性: 索引列中不同值越多越好(如 user_id), 避免在性别等低基数列建索引; 3) 覆盖索引: SELECT 列都在索引中, 避免回表 (Extra: Using index); 4) 避免索引失效: WHERE 中对索引列做函数/运算/隐式类型转换; 5) 联合索引顺序: 把区分度高的列放前面, 等值查询列在前范围查询列在后; 6) 前缀索引: 对长字符串列(如URL)只索引前N个字符. 监控: SHOW STATUS LIKE 'Handler_read%' 中 Handler_read_rnd_next 占比高说明扫描过多."
+  },
+  {
+    "title": "OOM (内存溢出) 问题排查思路",
+    "content": "Java OOM: 1) 保存堆dump: -XX:+HeapDumpOnOutOfMemoryError; 2) jmap -dump:format=b,file=heap.hprof <pid>; 3) MAT/JProfiler 分析: 看 Dominator Tree 找到最大对象; 4) 检查是否内存泄漏: 多次GC后老年代持续增长. Redis OOM: 1) INFO memory 确认 maxmemory 和 used_memory; 2) 检查 evicted_keys; 3) 找出大key: redis-cli --bigkeys. MySQL OOM: 1) 检查 buffer pool 是否过大; 2) 临时表过大(tmp_table_size, max_heap_table_size); 3) 连接数过多(每个连接消耗内存)."
+  },
+  {
+    "title": "系统高负载下的应急处理",
+    "content": "应急步骤: 1) 确认问题: uptime 看负载, top 看CPU/内存, iostat 看IO, dstat 看网络; 2) 止血: 如果是应用层问题, 限流(sentinel/网关)或降级(关闭非核心功能); 3) 如果是数据库: 先KILL慢查询释放资源, 再切只读(避免写入放大); 4) 扩容: 如果是微服务, 快速扩实例(K8s scale); 5) 重启: 如果无法定位且影响严重, 先重启再保留日志分析. 预防: 做好容量规划、定期压测、配置熔断降级、设置资源告警阈值."
+  },
+  {
+    "title": "MySQL Performance Schema 使用指南",
+    "content": "作用: 监控MySQL内部执行细节. 常用查询: 1) 等待事件: SELECT * FROM performance_schema.events_waits_current; 2) 最近SQL: SELECT * FROM performance_schema.events_statements_history 获取历史SQL和耗时; 3) 未使用索引: SELECT * FROM sys.schema_unused_indexes; 4) 冗余索引: SELECT * FROM sys.schema_redundant_indexes; 5) IO等待: SELECT * FROM sys.io_global_by_file_by_bytes. 建议: 生产环境开启, 开销约5-10%的CPU, 收益远超成本."
+  },
+  {
+    "title": "Redis 过期键清理机制",
+    "content": "Redis 过期策略: 1) 惰性删除(Lazy Expiration): 访问key时检查是否过期, 性能友好但占内存; 2) 定时删除(Active Expiration): 每秒10次随机抽查20个带过期时间的key, 发现过期比例>25%则重复. 3) 内存满时驱逐: 根据 maxmemory-policy 决定, allkeys-lru(推荐)或volatile-lru等. 相关配置: hz 控制定时任务频率(默认10, 可增到100加速过期处理); maxmemory-samples 控制抽查精度(默认5, 过大影响性能)."
+  },
+  {
+    "title": "MySQL 字符集与排序规则问题排查",
+    "content": "常见问题: 1) 乱码: 客户端字符集与服务端不一致; 2) 索引失效: 不同字符集的表 JOIN 时索引可能失效; 3) 排序异常: 排序规则(collation)不一致. 排查: SHOW VARIABLES LIKE 'character%'; SHOW VARIABLES LIKE 'collation%'; 查看表的字符集: SHOW CREATE TABLE; 建议: 统一使用 utf8mb4 (支持emoji)和 utf8mb4_unicode_ci, 避免使用 utf8(MySQL的utf8是阉割版, 只支持3字节)."
+  },
+  {
+    "title": "排查 Redis key 热点问题",
+    "content": "发现热点: 1) redis-cli --hotkeys 扫描热点key; 2) MONITOR 命令采样查看高频访问; 3) 客户端埋点记录 key 访问频率; 4) Redis 6.0+ 使用 CLIENT TRACKING 追踪key. 处理方案: 1) 本地缓存(如Caffeine): 热点key缓存在应用内存, 减少Redis访问; 2) 副本: 将热点key复制到多个从节点, 随机读取分摊压力; 3) 拆分: 将热点key拆成多个子key(如 key_1, key_2 ... key_N), 随机访问; 4) 限流: 对热点key访问做本地限流. 预防: 设计阶段就考虑热点问题, 避免单key承载过高QPS."
+  }
+]

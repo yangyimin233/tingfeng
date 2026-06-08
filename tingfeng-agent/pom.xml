@@ -63,6 +63,13 @@
             <version>${langchain4j-mcp.version}</version>
         </dependency>
 
+        <!-- LangChain4j Ollama —— 本地嵌入模型 + 向量化 -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-ollama</artifactId>
+            <version>${langchain4j.version}</version>
+        </dependency>
+
         <!-- MySQL 连接器 —— MCP Server 内部诊断 MySQL -->
         <dependency>
             <groupId>com.mysql</groupId>

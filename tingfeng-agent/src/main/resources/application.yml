@@ -32,6 +32,7 @@ tingfeng:
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434/v1}
     model-name: ${OLLAMA_MODEL:deepseek-r1:8b}
+    embedding-model: ${OLLAMA_EMBEDDING_MODEL:bge-m3}
 
 logging:
   level:

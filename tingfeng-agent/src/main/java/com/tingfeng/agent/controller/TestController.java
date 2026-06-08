@@ -2,6 +2,7 @@ package com.tingfeng.agent.controller;
 
 import com.tingfeng.agent.agent.ExecutorAgent;
 import dev.langchain4j.model.chat.ChatModel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,7 +17,8 @@ public class TestController {
     private final ChatModel model;
     private final ExecutorAgent executorAgent;
 
-    public TestController(ChatModel model, ExecutorAgent executorAgent) {
+    public TestController(ChatModel model,
+                           @Qualifier("fullExecutor") ExecutorAgent executorAgent) {
         this.model = model;
         this.executorAgent = executorAgent;
     }

@@ -27,15 +27,39 @@ public class PipelineConfig {
                 .build();
     }
 
+    // ── 三类 Executor: 按工具分组, 减少 token 浪费 ──
+
     @Bean
-    ExecutorAgent executorAgent(TingFengProperties props,
+    ExecutorAgent mysqlExecutor(TingFengProperties props,
                                  ChatModel cloudModel,
-                                 RedisDiagnosticTools redisTools,
                                  McpToolProvider mcpToolProvider) {
-        ChatModel model = isLocal(props)
-                ? buildOllamaModel(props.getOllama())
-                : cloudModel;
-        log.info("Executor Agent 模型: {}", isLocal(props) ? "Ollama (本地)" : "DeepSeek (云端)");
+        ChatModel model = selectModel(props, cloudModel);
+        log.info("MySQL Executor 模型: {}", modelLabel(props));
+        return AiServices.builder(ExecutorAgent.class)
+                .chatModel(model)
+                .toolProvider(mcpToolProvider)
+                .build();
+    }
+
+    @Bean
+    ExecutorAgent redisExecutor(TingFengProperties props,
+                                 ChatModel cloudModel,
+                                 RedisDiagnosticTools redisTools) {
+        ChatModel model = selectModel(props, cloudModel);
+        log.info("Redis Executor 模型: {}", modelLabel(props));
+        return AiServices.builder(ExecutorAgent.class)
+                .chatModel(model)
+                .tools(redisTools)
+                .build();
+    }
+
+    @Bean
+    ExecutorAgent fullExecutor(TingFengProperties props,
+                                ChatModel cloudModel,
+                                RedisDiagnosticTools redisTools,
+                                McpToolProvider mcpToolProvider) {
+        ChatModel model = selectModel(props, cloudModel);
+        log.info("Full Executor 模型: {}", modelLabel(props));
         return AiServices.builder(ExecutorAgent.class)
                 .chatModel(model)
                 .tools(redisTools)
@@ -50,8 +74,18 @@ public class PipelineConfig {
                 .build();
     }
 
+    // ── 私有方法 ──
+
     private boolean isLocal(TingFengProperties props) {
         return "local".equalsIgnoreCase(props.getExecutor().getProvider());
+    }
+
+    private String modelLabel(TingFengProperties props) {
+        return isLocal(props) ? "Ollama (本地)" : "DeepSeek (云端)";
+    }
+
+    private ChatModel selectModel(TingFengProperties props, ChatModel cloudModel) {
+        return isLocal(props) ? buildOllamaModel(props.getOllama()) : cloudModel;
     }
 
     private ChatModel buildOllamaModel(TingFengProperties.Ollama ollama) {

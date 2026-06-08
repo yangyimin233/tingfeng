@@ -7,6 +7,7 @@ import com.tingfeng.agent.agent.ReporterAgent;
 import com.tingfeng.agent.config.TingFengProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -24,18 +25,24 @@ public class AgentWorkflowService {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final PlannerAgent planner;
-    private final ExecutorAgent executor;
+    private final ExecutorAgent mysqlExecutor;
+    private final ExecutorAgent redisExecutor;
+    private final ExecutorAgent fullExecutor;
     private final ReporterAgent reporter;
     private final RagService ragService;
     private final int taskTimeoutSeconds;
 
     public AgentWorkflowService(PlannerAgent planner,
-                                 ExecutorAgent executor,
+                                 @Qualifier("mysqlExecutor") ExecutorAgent mysqlExecutor,
+                                 @Qualifier("redisExecutor") ExecutorAgent redisExecutor,
+                                 @Qualifier("fullExecutor") ExecutorAgent fullExecutor,
                                  ReporterAgent reporter,
                                  RagService ragService,
                                  TingFengProperties props) {
         this.planner = planner;
-        this.executor = executor;
+        this.mysqlExecutor = mysqlExecutor;
+        this.redisExecutor = redisExecutor;
+        this.fullExecutor = fullExecutor;
         this.reporter = reporter;
         this.ragService = ragService;
         this.taskTimeoutSeconds = props.getExecutor().getTimeoutSeconds();
@@ -172,8 +179,20 @@ public class AgentWorkflowService {
             Executors.newFixedThreadPool(4);
 
     private TaskResult executeTask(int index, String todo) {
+        // 按标签路由 Executor, 同时剥离标签
+        boolean hasMysql = todo.contains("[MySQL]");
+        boolean hasRedis = todo.contains("[Redis]");
+        String cleanTask = todo.replaceAll("\\[MySQL\\]\\s*|\\[Redis\\]\\s*", "").trim();
+        ExecutorAgent executor;
+        if (hasMysql && !hasRedis) {
+            executor = mysqlExecutor;
+        } else if (hasRedis && !hasMysql) {
+            executor = redisExecutor;
+        } else {
+            executor = fullExecutor;  // 无标签或跨域 → 全工具兜底
+        }
         try {
-            String note = executor.execute(todo);
+            String note = executor.execute(cleanTask);
             return new TaskResult(note, true);
         } catch (Exception e) {
             log.warn("  [{}] 执行失败: {}", index + 1, e.getMessage());

@@ -138,6 +138,41 @@
   #input-area.pipeline-input button { background: var(--accent2); }
   #input-area button:disabled { opacity: 0.4; cursor: not-allowed; }
 
+  /* ── Right panel: Snapshots ── */
+  aside.snapshots-panel {
+    width: 320px; background: var(--panel); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column; flex-shrink: 0;
+  }
+  aside.snapshots-panel header {
+    padding: 16px 20px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  aside.snapshots-panel header h3 { font-size: 14px; }
+  aside.snapshots-panel header .count { font-size: 11px; color: var(--dim); }
+  #snapshot-list {
+    flex: 1; overflow-y: auto; padding: 12px;
+  }
+  .snapshot-card {
+    background: #141923; border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px; margin-bottom: 8px; font-size: 12px;
+  }
+  .snapshot-card .method { font-weight: 600; color: #fff; margin-bottom: 4px; word-break: break-all; }
+  .snapshot-card .row { margin: 3px 0; color: var(--dim); font-size: 11px; }
+  .snapshot-card .row strong { color: var(--text); }
+  .snapshot-card .meta { display: flex; gap: 12px; margin-top: 6px; font-size: 11px; color: var(--dim); }
+  .snapshot-card .badge {
+    padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600;
+  }
+  .badge.ok { background: #064e3b; color: var(--green); }
+  .badge.err { background: #7f1d1d; color: var(--red); }
+  .snapshot-card .detail {
+    margin-top: 6px; padding: 6px 8px; background: #1c1917; border-radius: 4px;
+    font-size: 11px; word-break: break-all; max-height: 80px; overflow-y: auto;
+  }
+  .snapshot-card .detail.err { color: var(--red); }
+  .snapshot-card .detail.ret { color: var(--green); }
+  .empty-state { text-align: center; color: var(--dim); padding: 40px 20px; font-size: 13px; }
+
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -203,6 +238,17 @@
     <button id="send-btn" onclick="send()">发送</button>
   </div>
 </section>
+
+<!-- 右侧：探针上报面板 -->
+<aside class="snapshots-panel">
+  <header>
+    <h3>探针上报</h3>
+    <span class="count" id="snapshot-count">最近 50 条</span>
+  </header>
+  <div id="snapshot-list">
+    <div class="empty-state">等待业务方法上报中...</div>
+  </div>
+</aside>
 
 <script>
 const API_SIMPLE = '/tingfeng/chat';
@@ -392,6 +438,51 @@ function sendPipelineSSE(msg) {
 function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+
+// ── 探针上报轮询 ──
+function fmtTime(ts) {
+  const d = new Date(ts);
+  return d.getHours().toString().padStart(2,'0') + ':'
+       + d.getMinutes().toString().padStart(2,'0') + ':'
+       + d.getSeconds().toString().padStart(2,'0');
+}
+
+function renderSnapshots(list) {
+  const container = document.getElementById('snapshot-list');
+  document.getElementById('snapshot-count').textContent = '最近 ' + list.length + ' 条';
+  if (!list.length) {
+    container.innerHTML = '<div class="empty-state">等待业务方法上报中...</div>';
+    return;
+  }
+  container.innerHTML = list.map(function(s) {
+    var ok = s.success;
+    var html = '<div class="snapshot-card">';
+    html += '<div class="method">' + escapeHtml(s.methodName || '?') + '</div>';
+    html += '<div class="meta">';
+    html += '<span class="badge ' + (ok ? 'ok' : 'err') + '">' + (ok ? 'OK' : 'FAIL') + '</span>';
+    html += '<span>' + (s.rt || 0) + 'ms</span>';
+    html += '<span>' + fmtTime(s.timestamp || 0) + '</span>';
+    html += '</div>';
+    if (s.returnValue) {
+      html += '<div class="detail ret">' + escapeHtml(s.returnValue) + '</div>';
+    }
+    if (!ok && s.errorMsg) {
+      html += '<div class="detail err">' + escapeHtml(s.errorMsg) + '</div>';
+    }
+    html += '</div>';
+    return html;
+  }).join('');
+}
+
+async function pollSnapshots() {
+  try {
+    var res = await fetch('/tingfeng/snapshots');
+    if (res.ok) renderSnapshots(await res.json());
+  } catch (e) { /* ignore */ }
+}
+
+setInterval(pollSnapshots, 3000);
+pollSnapshots();
 </script>
 </body>
 </html>

@@ -1,5 +1,6 @@
 package com.tingfeng.agent.controller;
 
+import com.tingfeng.agent.persist.SnapshotRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,31 +14,38 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/tingfeng")
 public class ReportController {
 
     private static final Logger log = LoggerFactory.getLogger(ReportController.class);
-
     private static final int MAX_SNAPSHOTS = 50;
 
     private final List<Map<String, Object>> snapshots =
-            Collections.synchronizedList(new ArrayList<Map<String, Object>>() {
+            Collections.synchronizedList(new ArrayList<>() {
                 @Override
                 public boolean add(Map<String, Object> s) {
-                    if (size() >= MAX_SNAPSHOTS) {
-                        remove(0);
-                    }
+                    if (size() >= MAX_SNAPSHOTS) remove(0);
                     return super.add(s);
                 }
             });
 
+    private final SnapshotRepository repository;
+
+    public ReportController(Optional<SnapshotRepository> repository) {
+        this.repository = repository.orElse(null);
+    }
+
     @PostMapping("/report")
-    public void receive(@RequestBody Map<String, Object> snapshot) {
-        log.info("Received diagnostic snapshot: method={}, success={}, rt={}ms",
+    public void receive(@RequestBody LinkedHashMap<String, Object> snapshot) {
+        log.info("Received snapshot: method={}, success={}, rt={}ms",
                 snapshot.get("methodName"), snapshot.get("success"), snapshot.get("rt"));
         snapshots.add(snapshot);
+        if (repository != null) {
+            repository.save(snapshot);
+        }
     }
 
     @GetMapping("/snapshots")

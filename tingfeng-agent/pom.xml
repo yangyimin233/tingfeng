@@ -70,10 +70,16 @@
             <version>${langchain4j.version}</version>
         </dependency>
 
-        <!-- MySQL 连接器 —— MCP Server 内部诊断 MySQL -->
+        <!-- MySQL 连接器 —— MCP Server 内部诊断 MySQL + 探针快照持久化 -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
+        </dependency>
+
+        <!-- JDBC —— 探针快照持久化专用 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
     </dependencies>
 

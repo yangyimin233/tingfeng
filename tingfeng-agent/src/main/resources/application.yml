@@ -33,6 +33,11 @@ tingfeng:
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434/v1}
     model-name: ${OLLAMA_MODEL:deepseek-r1:8b}
     embedding-model: ${OLLAMA_EMBEDDING_MODEL:bge-m3}
+  persistence:
+    url: jdbc:mysql://localhost:3306/tingfeng_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+    username: ${MYSQL_USER:root}
+    password: ${MYSQL_PASS:1234}
+
 
 logging:
   level:

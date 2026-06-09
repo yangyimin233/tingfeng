@@ -1,6 +1,5 @@
 package com.tingfeng.starter.aop;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tingfeng.starter.annotation.TingFengMonitor;
 import com.tingfeng.starter.model.DiagnosticSnapshot;
@@ -12,6 +11,8 @@ import org.aspectj.lang.reflect.MethodSignature;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class TingFengMonitorAspect {
 
     private static final Logger log = LoggerFactory.getLogger(TingFengMonitorAspect.class);
+    private static final int MAX_RETURN_LENGTH = 5000;
 
     private final TingFengReportClient reportClient;
     private final ObjectMapper objectMapper;
@@ -32,7 +34,7 @@ public class TingFengMonitorAspect {
         this.reportExecutor = new ThreadPoolExecutor(
                 1, 2,
                 60L, TimeUnit.SECONDS,
-                new ArrayBlockingQueue<Runnable>(1000),
+                new ArrayBlockingQueue<>(1000),
                 new ThreadPoolExecutor.DiscardPolicy()
         );
     }
@@ -41,38 +43,36 @@ public class TingFengMonitorAspect {
     public Object around(ProceedingJoinPoint joinPoint, TingFengMonitor tingFengMonitor) throws Throwable {
         long start = System.currentTimeMillis();
         String methodName = resolveMethodName(joinPoint, tingFengMonitor);
-        String argsJson = serializeArgs(joinPoint.getArgs());
+        String argsJson = serialize(joinPoint.getArgs());
 
         boolean success = true;
+        Object returnValue = null;
         String errorMsg = null;
-        Throwable businessException = null;
+        String errorStack = null;
 
         try {
-            return joinPoint.proceed();
+            returnValue = joinPoint.proceed();
+            return returnValue;
         } catch (Throwable t) {
             success = false;
             errorMsg = t.getClass().getName() + ": " + t.getMessage();
-            businessException = t;
+            errorStack = stackTraceToString(t);
             throw t;
         } finally {
-            if (businessException != null || tingFengMonitor.value() == TingFengMonitor.Strategy.ALL) {
+            if (!success || tingFengMonitor.value() == TingFengMonitor.Strategy.ALL) {
                 DiagnosticSnapshot snapshot = new DiagnosticSnapshot();
                 snapshot.setMethodName(methodName);
                 snapshot.setArgs(argsJson);
+                snapshot.setReturnValue(serializeReturn(returnValue));
                 snapshot.setRt(System.currentTimeMillis() - start);
                 snapshot.setSuccess(success);
                 snapshot.setErrorMsg(errorMsg);
+                snapshot.setErrorStack(errorStack);
                 snapshot.setTimestamp(System.currentTimeMillis());
 
-                reportExecutor.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            reportClient.report(snapshot);
-                        } catch (Exception e) {
-                            log.debug("TingFeng report failed: {}", e.getMessage());
-                        }
-                    }
+                reportExecutor.execute(() -> {
+                    try { reportClient.report(snapshot); }
+                    catch (Exception e) { log.debug("TingFeng report failed: {}", e.getMessage()); }
                 });
             }
         }
@@ -86,11 +86,25 @@ public class TingFengMonitorAspect {
         return sig.getDeclaringType().getSimpleName() + "#" + sig.getName();
     }
 
-    private String serializeArgs(Object[] args) {
+    private String serialize(Object obj) {
+        try { return objectMapper.writeValueAsString(obj); }
+        catch (Exception e) { return "[]"; }
+    }
+
+    private String serializeReturn(Object returnValue) {
+        if (returnValue == null) return null;
         try {
-            return objectMapper.writeValueAsString(args);
-        } catch (JsonProcessingException e) {
-            return "[]";
+            String json = objectMapper.writeValueAsString(returnValue);
+            return json.length() > MAX_RETURN_LENGTH
+                    ? json.substring(0, MAX_RETURN_LENGTH) + "...(truncated)" : json;
+        } catch (Exception e) {
+            return String.valueOf(returnValue);
         }
+    }
+
+    private String stackTraceToString(Throwable t) {
+        StringWriter sw = new StringWriter();
+        t.printStackTrace(new PrintWriter(sw));
+        return sw.toString();
     }
 }

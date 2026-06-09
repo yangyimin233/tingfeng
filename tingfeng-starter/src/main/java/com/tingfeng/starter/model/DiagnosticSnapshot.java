@@ -13,14 +13,20 @@ public class DiagnosticSnapshot {
     /** 方法入参，JSON 数组格式 */
     private String args;
 
+    /** 方法返回值，JSON 格式 (成功时有值) */
+    private String returnValue;
+
     /** 执行耗时（毫秒） */
     private long rt;
 
     /** 是否成功 */
     private boolean success;
 
-    /** 异常信息（仅 success=false 时有值） */
+    /** 异常类型+消息（仅 success=false 时有值） */
     private String errorMsg;
+
+    /** 异常完整堆栈（仅 success=false 时有值） */
+    private String errorStack;
 
     /** 异常发生时的时间戳 */
     private long timestamp;
@@ -38,6 +44,9 @@ public class DiagnosticSnapshot {
     public String getArgs() { return args; }
     public void setArgs(String args) { this.args = args; }
 
+    public String getReturnValue() { return returnValue; }
+    public void setReturnValue(String returnValue) { this.returnValue = returnValue; }
+
     public long getRt() { return rt; }
     public void setRt(long rt) { this.rt = rt; }
 
@@ -46,6 +55,9 @@ public class DiagnosticSnapshot {
 
     public String getErrorMsg() { return errorMsg; }
     public void setErrorMsg(String errorMsg) { this.errorMsg = errorMsg; }
+
+    public String getErrorStack() { return errorStack; }
+    public void setErrorStack(String errorStack) { this.errorStack = errorStack; }
 
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }

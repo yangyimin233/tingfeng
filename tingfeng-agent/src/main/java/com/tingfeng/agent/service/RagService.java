@@ -88,6 +88,70 @@ public class RagService {
 
     // ── 种子知识加载 ──
 
+    /** 运行时新增一条知识 — 向量化后写入 store + 触发即时落盘 */
+    public void addEntry(String title, String content) {
+        if (store == null) store = new InMemoryEmbeddingStore<>();
+        String text = title + "\n" + content;
+        Embedding embedding = embeddingModel.embed(text).content();
+        store.add(embedding, TextSegment.from(text));
+        save();
+        log.info("新增知识条目: {}", title);
+    }
+
+    /** 清空知识库并重新加载种子知识 */
+    public void resetToSeed() {
+        store = new InMemoryEmbeddingStore<>();
+        loadSeed();
+        save();
+        log.info("知识库已重置为种子数据");
+    }
+
+    /**
+     * 导入 Markdown 文档 — 按 ## 标题切片, 每段即一条知识。
+     * 忽略过短的片段(标题名或正文 < 20 字符), 忽略前导 # 号之前的导言。
+     * 返回导入的条目数。
+     */
+    public int importDocument(String markdown) {
+        if (store == null) store = new InMemoryEmbeddingStore<>();
+        String[] sections = markdown.split("\n(?=## )");
+        int count = 0;
+        for (String section : sections) {
+            String trimmed = section.trim();
+            if (trimmed.isEmpty()) continue;
+            // 提取 ## 标题作为 title
+            String title = trimmed;
+            String content = trimmed;
+            int newlineIdx = trimmed.indexOf('\n');
+            if (newlineIdx > 0 && trimmed.startsWith("## ")) {
+                title = trimmed.substring(3, newlineIdx).trim();
+                content = trimmed.substring(newlineIdx + 1).trim();
+            } else if (trimmed.startsWith("# ") && !trimmed.startsWith("## ")) {
+                continue; // 跳过文档总标题 (# xxx)
+            }
+            if (title.length() < 10 || content.length() < 20) continue;
+
+            String text = title + "\n" + content;
+            Embedding embedding = embeddingModel.embed(text).content();
+            store.add(embedding, TextSegment.from(text));
+            count++;
+        }
+        if (count > 0) save();
+        log.info("文档导入完成: {} 个切片", count);
+        return count;
+    }
+
+    /** 当前知识条目数 */
+    public int entryCount() {
+        if (store == null) return 0;
+        try {
+            Embedding dummy = embeddingModel.embed("count").content();
+            return store.search(EmbeddingSearchRequest.builder()
+                    .queryEmbedding(dummy).maxResults(1000).build()).matches().size();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     private void loadSeed() {
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(SEED_FILE)) {
             if (is == null) {

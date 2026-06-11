@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tingfeng.agent.agent.ExecutorAgent;
 import com.tingfeng.agent.agent.PlannerAgent;
 import com.tingfeng.agent.agent.ReporterAgent;
+import com.tingfeng.agent.agent.TodoItem;
 import com.tingfeng.agent.config.TingFengProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +18,8 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
 public class AgentWorkflowService {
@@ -55,30 +58,27 @@ public class AgentWorkflowService {
         long start = System.currentTimeMillis();
         log.info("=== Pipeline 诊断开始 ===");
 
-        List<String> todos = planWithRag(msg);
+        List<TodoItem> todos = planWithRag(msg);
         if (todos.isEmpty()) {
             log.info("非运维问题，已拦截");
             return "我是运维诊断助手，仅能处理 Redis、MySQL、服务器诊断等相关问题。请提供运维相关的排查需求。";
         }
 
-        // 并行执行所有 TODO
         List<CompletableFuture<TaskResult>> futures = new ArrayList<>();
-        for (int i = 0; i < todos.size(); i++) {
-            final int index = i;
-            final String todo = todos.get(i);
-            futures.add(CompletableFuture.supplyAsync(() -> executeTask(index, todo), executorPool));
+        for (TodoItem item : todos) {
+            futures.add(CompletableFuture.supplyAsync(() -> executeTask(item), executorPool));
         }
 
-        // 收集结果（保持原始顺序, 带超时）
         StringBuilder notes = new StringBuilder();
         for (int i = 0; i < futures.size(); i++) {
             try {
                 TaskResult result = futures.get(i).get(taskTimeoutSeconds, TimeUnit.SECONDS);
                 notes.append(result.note).append("\n\n");
-                log.info("  [{}/{}] {}", i + 1, todos.size(), result.ok ? "OK" : "FAILED");
+                log.info("  [{}/{}] {} {}", i + 1, todos.size(),
+                        result.ok ? "OK" : "FAILED", todos.get(i).task());
             } catch (Exception e) {
                 log.warn("  [{}/{}] 超时或异常: {}", i + 1, todos.size(), e.getMessage());
-                notes.append("### ").append(todos.get(i))
+                notes.append("### ").append(todos.get(i).task())
                      .append("\n- 执行超时或异常: ").append(e.getMessage()).append("\n\n");
             }
         }
@@ -100,8 +100,8 @@ public class AgentWorkflowService {
         try {
             emitter.send(event("phase", "规划中... 正在分析问题"));
 
-            List<String> todos = planWithRag(msg);
-            emitter.send(event("plan", todos));
+            List<TodoItem> todos = planWithRag(msg);
+            emitter.send(event("plan", todos.stream().map(TodoItem::task).toList()));
 
             if (todos.isEmpty()) {
                 emitter.send(event("report", "我是运维诊断助手，仅能处理 Redis、MySQL、服务器诊断等相关问题。请提供运维相关的排查需求。"));
@@ -113,18 +113,20 @@ public class AgentWorkflowService {
             for (int i = 0; i < todos.size(); i++) {
                 emitter.send(event("task-start",
                         String.format("{\"index\":%d,\"total\":%d,\"title\":\"%s\"}",
-                                i + 1, todos.size(), escapeJson(todos.get(i)))));
+                                i + 1, todos.size(), escapeJson(todos.get(i).task()))));
             }
 
-            // 并行执行
             List<CompletableFuture<TaskResult>> futures = new ArrayList<>();
             for (int i = 0; i < todos.size(); i++) {
+                final TodoItem item = todos.get(i);
                 final int index = i;
-                final String todo = todos.get(i);
-                futures.add(CompletableFuture.supplyAsync(() -> executeTask(index, todo), executorPool)
+                futures.add(CompletableFuture.supplyAsync(() -> executeTask(item), executorPool)
                         .orTimeout(taskTimeoutSeconds, TimeUnit.SECONDS)
                         .exceptionally(ex -> new TaskResult(
-                                "### " + todo + "\n- 执行超时或异常: " + ex.getMessage(), false))
+                                "### " + item.task() + "\n- 执行超时或异常: " + ex.getMessage(), false))
+                        .orTimeout(taskTimeoutSeconds, TimeUnit.SECONDS)
+                        .exceptionally(ex -> new TaskResult(
+                                "### " + item.task() + "\n- 执行超时或异常: " + ex.getMessage(), false))
                         .thenApply(result -> {
                             synchronized (emitter) {
                                 try {
@@ -181,31 +183,32 @@ public class AgentWorkflowService {
     private final java.util.concurrent.ExecutorService executorPool =
             Executors.newFixedThreadPool(4);
 
-    private TaskResult executeTask(int index, String todo) {
-        // 按标签路由 Executor, 同时剥离标签
-        boolean hasMysql = todo.contains("[MySQL]");
-        boolean hasRedis = todo.contains("[Redis]");
-        boolean hasSystem = todo.contains("[System]");
-        int tagCount = (hasMysql ? 1 : 0) + (hasRedis ? 1 : 0) + (hasSystem ? 1 : 0);
-        String cleanTask = todo.replaceAll("\\[MySQL\\]\\s*|\\[Redis\\]\\s*|\\[System\\]\\s*", "").trim();
-        ExecutorAgent executor;
-        if (tagCount == 1) {
-            if (hasMysql) executor = mysqlExecutor;
-            else if (hasRedis) executor = redisExecutor;
-            else executor = systemExecutor;
-        } else {
-            executor = fullExecutor;  // 无标签或跨域 → 全工具兜底
-        }
+    private TaskResult executeTask(TodoItem item) {
+        ExecutorAgent executor = routeByTags(item.tags());
         try {
-            String note = executor.execute(cleanTask);
+            String note = executor.execute(item.task());
             return new TaskResult(note, true);
         } catch (Exception e) {
-            log.warn("  [{}] 执行失败: {}", index + 1, e.getMessage());
-            return new TaskResult("### " + todo + "\n- 执行失败: " + e.getMessage(), false);
+            log.warn("  执行失败: {}", e.getMessage());
+            return new TaskResult("### " + item.task() + "\n- 执行失败: " + e.getMessage(), false);
         }
     }
 
-    private List<String> planWithRag(String msg) {
+    /** 按标签路由 Executor */
+    private ExecutorAgent routeByTags(List<String> tags) {
+        if (tags == null || tags.size() != 1) return fullExecutor;
+        String tag = tags.get(0).toLowerCase();
+        return switch (tag) {
+            case "mysql" -> mysqlExecutor;
+            case "redis" -> redisExecutor;
+            case "system" -> systemExecutor;
+            default -> fullExecutor;
+        };
+    }
+
+    // ── Planner 调用 + JSON 解析 ──
+
+    private List<TodoItem> planWithRag(String msg) {
         String ragContext = buildRagContext(msg);
         String enriched = ragContext.isEmpty() ? msg
                 : ragContext + "\n\n根据以上参考知识，为以下问题制定排查计划：\n" + msg;
@@ -224,19 +227,37 @@ public class AgentWorkflowService {
 
     // ── Planner 调用 + JSON 解析 ──
 
-    @SuppressWarnings("unchecked")
-    private List<String> plan(String msg) {
+    private List<TodoItem> plan(String msg) {
         String raw = planner.plan(msg);
         log.info("Planner 原始输出: {}", raw);
         try {
             String json = raw.trim();
-            if (json.startsWith("```")) {
-                json = json.replaceAll("```json|```", "").trim();
-            }
-            return MAPPER.readValue(json, List.class);
+            if (json.startsWith("```")) json = json.replaceAll("```json|```", "").trim();
+            return MAPPER.readValue(json,
+                    MAPPER.getTypeFactory().constructCollectionType(List.class, TodoItem.class));
         } catch (Exception e) {
-            log.warn("Planner JSON 解析失败, 退回整段文本: {}", e.getMessage());
-            return raw.isEmpty() ? List.of() : List.of(raw);
+            log.warn("结构化解析失败, 尝试旧格式兼容: {}", e.getMessage());
+            return parseLegacy(raw);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<TodoItem> parseLegacy(String raw) {
+        try {
+            List<String> items = MAPPER.readValue(raw.trim(), List.class);
+            List<TodoItem> result = new ArrayList<>();
+            Pattern tagPat = Pattern.compile("\\[(MySQL|Redis|System)\\]\\s*");
+            for (String item : items) {
+                Matcher m = tagPat.matcher(item);
+                List<String> tags = new ArrayList<>();
+                while (m.find()) tags.add(m.group(1).toLowerCase());
+                String task = tagPat.matcher(item).replaceAll("").trim();
+                result.add(new TodoItem(task, tags));
+            }
+            return result;
+        } catch (Exception ee) {
+            log.warn("旧格式解析也失败: {}", ee.getMessage());
+            return raw.isEmpty() ? List.of() : List.of(new TodoItem(raw, List.of()));
         }
     }
 

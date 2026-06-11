@@ -98,5 +98,57 @@
   {
     "title": "排查 Redis key 热点问题",
     "content": "发现热点: 1) redis-cli --hotkeys 扫描热点key; 2) MONITOR 命令采样查看高频访问; 3) 客户端埋点记录 key 访问频率; 4) Redis 6.0+ 使用 CLIENT TRACKING 追踪key. 处理方案: 1) 本地缓存(如Caffeine): 热点key缓存在应用内存, 减少Redis访问; 2) 副本: 将热点key复制到多个从节点, 随机读取分摊压力; 3) 拆分: 将热点key拆成多个子key(如 key_1, key_2 ... key_N), 随机访问; 4) 限流: 对热点key访问做本地限流. 预防: 设计阶段就考虑热点问题, 避免单key承载过高QPS."
+  },
+  {
+    "title": "系统 CPU 使用率飙高诊断流程",
+    "content": "排查步骤: 1) 使用 cpu_info 工具查看系统 CPU 使用率、JVM 进程 CPU 使用率、可用核心数; 2) 系统 CPU > 90% 时使用 top -H -p <pid> 定位最忙线程, jstack 查看堆栈; 3) 使用 java_threads 检查是否有死锁导致 CPU 空转; 4) jstat -gcutil <pid> 1000 检查是否频繁 Full GC 导致 CPU 升高; 5) 常见根因: 死循环、正则回溯、HashMap 链表退化、频繁序列化. 判断阈值: 系统 CPU > 90% 需紧急处理, 70-90% 需关注趋势. 紧急处理: 重启问题实例、限流降级."
+  },
+  {
+    "title": "JVM 堆内存使用率过高排查与调优",
+    "content": "诊断: 1) 使用 java_memory 工具查看堆已用/最大值、系统空闲内存; 2) 堆使用率 > 85% 时 jmap -histo:live <pid> 查看对象分布; 3) jstat -gcutil <pid> 1000 观察各代变化趋势; 4) 如果 Full GC 后堆使用率不下降 → 内存泄漏, jmap -dump 导出 heap dump 用 MAT 分析 Dominator Tree; 5) 检查静态集合、ThreadLocal 未清理、连接池未关闭. 调优: 增大 -Xmx、修复泄漏、水平扩容. 监控: 堆使用率 > 80% 告警."
+  },
+  {
+    "title": "JVM 线程死锁检测与处理",
+    "content": "检测: 1) 使用 java_threads 工具, 内部调用 ThreadMXBean.findDeadlockedThreads(), 输出死锁线程 ID 和堆栈; 2) jstack -l <pid> 同样可确认; 3) 死锁特征: 两个或多个线程互相等待对方持有锁. 常见原因: 1) 嵌套 synchronized 块获取锁顺序不一致; 2) ReentrantLock 未在 finally 释放; 3) 数据库跨表更新顺序不一致. 预防: 统一锁获取顺序、使用 tryLock(timeout)、缩小锁范围. 紧急处理: 重启释放所有锁, 事后分析 jstack 修复代码."
+  },
+  {
+    "title": "频繁 Full GC 排查与调优",
+    "content": "诊断: 1) jstat -gcutil <pid> 1000 观察 FGC 频率和耗时, java_memory 辅助看堆内存状态; 2) FGC 后老年代使用率仍 > 80% → 堆太小或内存泄漏; 3) FGC 后下降明显但 Young GC 频繁 → 年轻代太小. 监控指标: Full GC 频率 < 1 次/小时, 单次耗时 < 1 秒. 配置: 增大堆 -Xms -Xmx, 调整年轻代比例 -XX:NewRatio, 大堆推荐 G1GC (-XX:+UseG1GC). 预防: 减少大对象创建, 使用对象池, StringBuilder 替代 String 拼接."
+  },
+  {
+    "title": "应用 OOM 应急处理与预防",
+    "content": "应急: 1) java_memory 查看当前堆状态确认 OOM 类型; 2) 堆满 (Heap space) → jmap -dump 导出分析; 3) Metaspace 满 → jstat -gc 查看 MU, 增大 -XX:MaxMetaspaceSize; 4) 堆外内存满 → jcmd VM.native_memory summary. 预防: 1) -XX:+HeapDumpOnOutOfMemoryError 自动 dump; 2) -XX:+ExitOnOutOfMemoryError 自动重启; 3) 设置合理 -Xmx; 4) 监控堆使用率 > 85% 提前预警. 紧急处理: 重启实例, 事后分析 heap dump."
+  },
+  {
+    "title": "线程池满如何排查",
+    "content": "排查: 1) java_threads 查看当前线程数和峰值对比, 如果当前持续接近峰值 → 线程池可能满载; 2) 检查线程池配置: corePoolSize / maximumPoolSize / queueCapacity; 3) jstack 查看线程状态分布 (RUNNABLE/BLOCKED/WAITING). 常见原因: 1) IO 密集型任务线程数设置过小; 2) 数据库慢查询或外部 HTTP 调用超时导致线程阻塞; 3) BlockingQueue 满导致任务堆积. 优化: IO 密集型线程数 = CPU 核数 * 2; 使用 CallerRunsPolicy 防止堆积; 下游调用设置合理超时."
+  },
+  {
+    "title": "Java 进程假死 (Hang) 排查思路",
+    "content": "排查: 1) cpu_info 检查 CPU: CPU 很低但进程不响应 → 可能是死锁或阻塞等待; 2) java_threads 检查死锁, 多次 jstack dump 对比找出一直 BLOCKED/WAITING 的线程; 3) 检查数据库连接池是否所有连接都在执行慢查询; 4) 检查 Redis/MQ/HTTP 下游是否超时. 常见原因: 1) 连接池耗尽 (所有线程 waiting for connection); 2) Redis 无超时设置导致无限等待; 3) 日志文件写满磁盘导致写阻塞. 紧急: 重启; 预防: 设置超时、使用 tryLock."
+  },
+  {
+    "title": "GC 日志解读与优化方向",
+    "content": "GC 日志关键: 1) [GC (Allocation Failure)] — 新生代空间不足触发 Minor GC; 2) [Full GC (Ergonomics)] — 老年代空间不足; 3) X->Y(Z) = 回收前 X, 回收后 Y, 总容量 Z; 4) Times: user/sys/real 含义. 配合 java_memory 辅助判断堆使用率. 问题模式: 1) Full GC 频繁 + 回收差 → 内存泄漏; 2) Young GC 频繁 + 晋升快 → 年轻代太小; 3) GC 停顿长 → 换 G1GC 或调整 -XX:MaxGCPauseMillis. 建议 GC 日志开启: -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:gc.log."
+  },
+  {
+    "title": "Metaspace 溢出排查",
+    "content": "排查: 1) java_memory 查看非堆内存已用量; 2) jstat -gc <pid> 查看 MU (Metaspace Used) 和 MC (Capacity); 3) jcmd <pid> VM.classloader_stats 查看各 loader 加载的类数量. 常见场景: 1) Spring CGLIB 大量代理; 2) Groovy/JS 等动态脚本引擎频繁编译; 3) Lambda 表达式匿名类. 配置: -XX:MaxMetaspaceSize=256m (Java 8+ 默认无限制). 如果 Metaspace 持续增长 → 检查是否有 ClassLoader 泄漏."
+  },
+  {
+    "title": "如何判断应用是否需要扩容",
+    "content": "扩容决策矩阵: 1) cpu_info: CPU 使用率持续 > 70% → 考虑扩容; 2) java_memory: 堆 > 80% 且 FGC 无效 → 扩容; 3) java_threads: 线程持续增长且大量 WAITING → 先排查代码再扩容; 4) 响应耗时 rt 增长 → 可能到吞吐瓶颈. 扩容 vs 优化: 指标线性增长且无异常 → 扩容; 低负载仍异常 → 先修代码. 方案: 水平扩容(加实例)优先于垂直扩容(加配置)."
+  },
+  {
+    "title": "系统 Load Average 与 CPU 的区别",
+    "content": "概念: CPU 使用率 = CPU 工作占比; Load Average = 等待 CPU 的进程数(含 IO 等待). 判断: 1) CPU 高 + Load 低 → CPU 密集, 正常; 2) CPU 低 + Load 高 → IO 等待(磁盘/网络); 3) 两者都高 → 任务积压需扩容. cpu_info 查看 JVM 进程 CPU, top/uptime 看系统 Load. 经验值: Load < CPU 核数 = 正常; Load > 核数*2 = 严重积压."
+  },
+  {
+    "title": "系统 CPU 使用率持续 100% 紧急排查",
+    "content": "紧急: 1) cpu_info 确认 JVM 进程 CPU; 2) top -H -p <pid> 找最忙线程 tid; 3) printf '%x\\n' <tid> 转十六进制; 4) jstack <pid> | grep -A 30 <nid> 看线程堆栈. 常见根因: 死循环 (while true 无 sleep)、正则回溯、频繁 Full GC、Jackson 大对象序列化. 处理: 死循环 → 重启; 正则编译加缓存; HashMap 初始化容量. 监控: CPU > 80% 持续 5 分钟告警."
+  },
+  {
+    "title": "JVM 启动后性能逐渐下降分析",
+    "content": "诊断: 1) cpu_info 观察 CPU 使用趋势; 2) java_memory 看堆是否持续增长; 3) java_threads 看线程数是否增长(线程泄漏); 4) jstat -gcutil 看 GC 频率变化; 5) 检查定时任务是否积累未关闭资源. 常见根因: 1) 内存泄漏致 FGC 越来越频繁; 2) 线程泄漏致上下文切换开销增大; 3) 连接池耗尽致请求排队; 4) 缓存无过期时间致无限增长; 5) 磁盘 IO 饱和. 预防: 缓存设 TTL、连接池设 leakDetectionThreshold、定期资源巡检."
   }
 ]

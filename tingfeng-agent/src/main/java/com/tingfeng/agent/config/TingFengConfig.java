@@ -121,14 +121,53 @@ public class TingFengConfig {
         return buildProvider(cpuMcpClient);
     }
 
+    // ── MCP Client: Snapshot (探针元数据 Resource 服务) ──
+
+    @Bean
+    McpClient snapshotMcpClient(TingFengPersistenceProperties persistProps) {
+        if (!persistProps.isConfigured()) {
+            log.info("探针持久化未配置, 跳过 Snapshot MCP Server");
+            return null;
+        }
+        try {
+            String classpath = System.getProperty("java.class.path");
+            String javaExe = ProcessHandle.current()
+                    .info().command()
+                    .orElse(System.getProperty("java.home") + "/bin/java");
+            log.info("启动 Snapshot MCP Server (Resource)");
+            return DefaultMcpClient.builder()
+                    .key("snapshot-mcp")
+                    .transport(StdioMcpTransport.builder()
+                            .command(List.of(javaExe, "-cp", classpath,
+                                    "com.tingfeng.agent.mcp.SnapshotMcpServer"))
+                            .environment(java.util.Map.of(
+                                    "PERSISTENCE_URL", persistProps.getUrl(),
+                                    "PERSISTENCE_USER", persistProps.getUsername(),
+                                    "PERSISTENCE_PASS", persistProps.getPassword()))
+                            .logEvents(true)
+                            .build())
+                    .build();
+        } catch (Exception e) {
+            log.warn("Snapshot MCP Server 启动失败: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    @Bean
+    McpToolProvider snapshotMcpToolProvider(McpClient snapshotMcpClient) {
+        return buildProvider(snapshotMcpClient);
+    }
+
     // ── 全工具 McpToolProvider (fullExecutor 兜底) ──
 
     @Bean
     McpToolProvider mcpToolProvider(McpClient mysqlMcpClient,
-                                     McpClient cpuMcpClient) {
+                                     McpClient cpuMcpClient,
+                                     McpClient snapshotMcpClient) {
         List<McpClient> clients = new ArrayList<>();
         if (mysqlMcpClient != null) clients.add(mysqlMcpClient);
         if (cpuMcpClient != null) clients.add(cpuMcpClient);
+        if (snapshotMcpClient != null) clients.add(snapshotMcpClient);
         return McpToolProvider.builder()
                 .mcpClients(clients.toArray(McpClient[]::new))
                 .failIfOneServerFails(false)

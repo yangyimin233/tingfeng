@@ -64,6 +64,7 @@ public class TingFengMonitorAspect {
                 snapshot.setMethodName(methodName);
                 snapshot.setArgs(argsJson);
                 snapshot.setReturnValue(serializeReturn(returnValue));
+                snapshot.setRequestTime(start);     // 请求到达时间
                 snapshot.setRt(System.currentTimeMillis() - start);
                 snapshot.setSuccess(success);
                 snapshot.setErrorMsg(errorMsg);

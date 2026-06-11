@@ -29,6 +29,8 @@ tingfeng:
     provider: ${EXECUTOR_PROVIDER:cloud}
     # 单任务超时(秒), 本地模型建议 >= 120
     timeout-seconds: ${EXECUTOR_TIMEOUT_SECONDS:60}
+    # Planner 上下文注入的探针快照条数
+    snapshot-context-size: ${SNAPSHOT_CONTEXT_SIZE:10}
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434/v1}
     model-name: ${OLLAMA_MODEL:deepseek-r1:8b}

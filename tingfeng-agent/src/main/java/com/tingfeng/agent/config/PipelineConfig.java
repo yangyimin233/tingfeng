@@ -57,12 +57,14 @@ public class PipelineConfig {
     @Bean
     ExecutorAgent systemExecutor(TingFengProperties props,
                                   ChatModel cloudModel,
-                                  @Qualifier("cpuMcpToolProvider") McpToolProvider mcpToolProvider) {
+                                  @Qualifier("cpuMcpToolProvider") McpToolProvider cpuProvider,
+                                  @Qualifier("snapshotMcpToolProvider") McpToolProvider snapshotProvider) {
         ChatModel model = selectModel(props, cloudModel);
         log.info("System Executor 模型: {}", modelLabel(props));
         return AiServices.builder(ExecutorAgent.class)
                 .chatModel(model)
-                .toolProvider(mcpToolProvider)
+                .toolProvider(cpuProvider)
+                .toolProvider(snapshotProvider)
                 .build();
     }
 
@@ -70,13 +72,15 @@ public class PipelineConfig {
     ExecutorAgent fullExecutor(TingFengProperties props,
                                 ChatModel cloudModel,
                                 RedisDiagnosticTools redisTools,
-                                McpToolProvider mcpToolProvider) {
+                                McpToolProvider mcpToolProvider,
+                                @Qualifier("snapshotMcpToolProvider") McpToolProvider snapshotProvider) {
         ChatModel model = selectModel(props, cloudModel);
         log.info("Full Executor 模型: {}", modelLabel(props));
         return AiServices.builder(ExecutorAgent.class)
                 .chatModel(model)
                 .tools(redisTools)
                 .toolProvider(mcpToolProvider)
+                .toolProvider(snapshotProvider)
                 .build();
     }
 

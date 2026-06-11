@@ -6,6 +6,7 @@ import com.tingfeng.agent.agent.PlannerAgent;
 import com.tingfeng.agent.agent.ReporterAgent;
 import com.tingfeng.agent.agent.TodoItem;
 import com.tingfeng.agent.config.TingFengProperties;
+import dev.langchain4j.mcp.client.McpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -34,6 +35,8 @@ public class AgentWorkflowService {
     private final ExecutorAgent fullExecutor;
     private final ReporterAgent reporter;
     private final RagService ragService;
+    private final McpClient snapshotMcpClient;
+    private final int snapshotContextSize;
     private final int taskTimeoutSeconds;
 
     public AgentWorkflowService(PlannerAgent planner,
@@ -43,7 +46,8 @@ public class AgentWorkflowService {
                                  @Qualifier("fullExecutor") ExecutorAgent fullExecutor,
                                  ReporterAgent reporter,
                                  RagService ragService,
-                                 TingFengProperties props) {
+                                 TingFengProperties props,
+                                 @Qualifier("snapshotMcpClient") McpClient snapshotMcpClient) {
         this.planner = planner;
         this.mysqlExecutor = mysqlExecutor;
         this.redisExecutor = redisExecutor;
@@ -51,6 +55,8 @@ public class AgentWorkflowService {
         this.fullExecutor = fullExecutor;
         this.reporter = reporter;
         this.ragService = ragService;
+        this.snapshotMcpClient = snapshotMcpClient;
+        this.snapshotContextSize = props.getExecutor().getSnapshotContextSize();
         this.taskTimeoutSeconds = props.getExecutor().getTimeoutSeconds();
     }
 
@@ -209,10 +215,82 @@ public class AgentWorkflowService {
     // ── Planner 调用 + JSON 解析 ──
 
     private List<TodoItem> planWithRag(String msg) {
-        String ragContext = buildRagContext(msg);
-        String enriched = ragContext.isEmpty() ? msg
-                : ragContext + "\n\n根据以上参考知识，为以下问题制定排查计划：\n" + msg;
-        return plan(enriched);
+        StringBuilder ctx = new StringBuilder();
+        ctx.append(buildRagContext(msg));
+        ctx.append(querySnapshotResources());
+        String enriched = ctx.isEmpty() ? msg : ctx + "\n\n为以下问题制定排查计划：\n" + msg;
+        return plan(enriched.toString());
+    }
+
+//    /** 从探针 Snapshot MCP Server 拉取近期异常和慢调用作为 Planner 上下文 */
+//    private String querySnapshotResources() {
+//        if (snapshotMcpClient == null) return "";
+//        String uri = "snapshot://recent?limit=" + snapshotContextSize;
+//        try {
+//            var result = snapshotMcpClient.readResource(uri);
+//            if (result != null && result.contents() != null) {
+//                for (var c : result.contents()) {
+//                    if (c instanceof dev.langchain4j.mcp.client.McpTextResourceContents tc) {
+//                        String text = tc.text();
+//                        if (text != null && !text.equals("[]") && !text.isEmpty()) {
+//                            return "\n[探针: 最近调用快照]\n" + text;
+//                        }
+//                    }
+//                }
+//            }
+//        } catch (Exception e) { log.warn("Snapshot Resource 失败: {}", e.getMessage()); }
+//        return "";
+//    }
+
+    private String querySnapshotResources() {
+        System.out.println("====== [Debug] 开始拉取 Snapshot Resource ======");
+
+        if (snapshotMcpClient == null) {
+            System.err.println("[Debug-Error] 失败原因：snapshotMcpClient 是 null！请检查 Spring 注入或连接状态。");
+            return "";
+        }
+
+        String uri = "snapshot://recent?limit=" + snapshotContextSize;
+        System.out.println("[Debug] 正在请求 URI: " + uri);
+
+        try {
+            var result = snapshotMcpClient.readResource(uri);
+
+            if (result == null || result.contents() == null) {
+                System.err.println("[Debug-Error] 失败原因：MCP Server 返回了 null 或者 contents 为空！");
+                return "";
+            }
+
+            System.out.println("[Debug] 成功拿到返回，Contents 数量: " + result.contents().size());
+
+            for (var c : result.contents()) {
+                System.out.println("[Debug] 遍历 Content，实际类型为: " + c.getClass().getName());
+
+                // 使用通配类型或者直接反射强转打印，避免 instanceof 坑
+                String text = c.toString(); // 先笼统打印出来看看有没有数据
+                System.out.println("[Debug] Content 原始字符串: " + text);
+
+                if (c instanceof dev.langchain4j.mcp.client.McpTextResourceContents tc) {
+                    String realText = tc.text();
+                    System.out.println("[Debug] 成功强转，实际 Text 内容: " + realText);
+
+                    if (realText != null && !realText.equals("[]") && !realText.isEmpty()) {
+                        System.out.println("====== [Debug] 数据提取成功！ ======");
+                        return "\n[探针: 最近调用快照]\n" + realText;
+                    } else {
+                        System.err.println("[Debug-Error] 失败原因：数据是空的 []，或者字符串为空！");
+                    }
+                } else {
+                    System.err.println("[Debug-Error] 失败原因：instanceof 匹配失败！");
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("[Debug-Error] 失败原因：代码抛出异常！");
+            e.printStackTrace(); // 必须把堆栈打印出来！
+        }
+
+        System.out.println("====== [Debug] 拉取结束，返回空字符串 ======");
+        return "";
     }
 
     private String buildRagContext(String query) {

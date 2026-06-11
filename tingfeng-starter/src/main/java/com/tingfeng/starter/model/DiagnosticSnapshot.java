@@ -28,7 +28,11 @@ public class DiagnosticSnapshot {
     /** 异常完整堆栈（仅 success=false 时有值） */
     private String errorStack;
 
-    /** 异常发生时的时间戳 */
+    /** 接口请求到达时间戳 (方法进入时) */
+    private long requestTime;
+
+
+    /** 捕获时间戳 (finally 块执行时) */
     private long timestamp;
 
     public DiagnosticSnapshot() {
@@ -46,6 +50,9 @@ public class DiagnosticSnapshot {
 
     public String getReturnValue() { return returnValue; }
     public void setReturnValue(String returnValue) { this.returnValue = returnValue; }
+
+    public long getRequestTime() { return requestTime; }
+    public void setRequestTime(long requestTime) { this.requestTime = requestTime; }
 
     public long getRt() { return rt; }
     public void setRt(long rt) { this.rt = rt; }

@@ -51,12 +51,16 @@ public class TingFengProperties {
     public static class Executor {
         private String provider = "cloud";
         private int timeoutSeconds = 60;
+        private int snapshotContextSize = 10;
 
         public String getProvider() { return provider; }
         public void setProvider(String provider) { this.provider = provider; }
 
         public int getTimeoutSeconds() { return timeoutSeconds; }
         public void setTimeoutSeconds(int timeoutSeconds) { this.timeoutSeconds = timeoutSeconds; }
+
+        public int getSnapshotContextSize() { return snapshotContextSize; }
+        public void setSnapshotContextSize(int snapshotContextSize) { this.snapshotContextSize = snapshotContextSize; }
     }
 
     public static class Ollama {

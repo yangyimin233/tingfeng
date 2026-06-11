@@ -22,12 +22,14 @@ public class SnapshotRepository {
             "  method_name  VARCHAR(255) NOT NULL," +
             "  args         MEDIUMTEXT," +
             "  return_value MEDIUMTEXT," +
+            "  request_time BIGINT       NOT NULL," +
             "  rt_ms        BIGINT       NOT NULL," +
             "  success      TINYINT(1)   NOT NULL," +
             "  error_msg    TEXT," +
             "  error_stack  MEDIUMTEXT," +
             "  timestamp    BIGINT       NOT NULL," +
             "  created_at   DATETIME     DEFAULT CURRENT_TIMESTAMP," +
+            "  INDEX idx_request (request_time)," +
             "  INDEX idx_timestamp (timestamp)," +
             "  INDEX idx_method   (method_name)," +
             "  INDEX idx_success  (success)" +
@@ -35,8 +37,8 @@ public class SnapshotRepository {
 
     private static final String INSERT_SQL =
             "INSERT INTO tingfeng_snapshot" +
-            "  (trace_id, method_name, args, return_value, rt_ms, success, error_msg, error_stack, timestamp)" +
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "  (trace_id, method_name, args, return_value, request_time, rt_ms, success, error_msg, error_stack, timestamp)" +
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private final JdbcTemplate jdbc;
 
@@ -52,6 +54,7 @@ public class SnapshotRepository {
                     snapshot.get("methodName"),
                     truncate((String) snapshot.get("args"), 20000),
                     truncate((String) snapshot.get("returnValue"), 20000),
+                    toLong(snapshot.get("requestTime")),
                     toLong(snapshot.get("rt")),
                     Boolean.TRUE.equals(snapshot.get("success")) ? 1 : 0,
                     snapshot.get("errorMsg"),
@@ -65,6 +68,9 @@ public class SnapshotRepository {
     private void ensureTable() {
         try {
             jdbc.execute(DDL);
+            // 兼容已有表: 补齐 request_time 列
+            try { jdbc.execute("ALTER TABLE tingfeng_snapshot ADD COLUMN request_time BIGINT"); }
+            catch (Exception ignored) { /* 列已存在 */ }
             log.info("探针快照表 tingfeng_snapshot 已就绪");
         } catch (Exception e) {
             log.warn("建表失败, MySQL 持久化不可用: {}", e.getMessage());

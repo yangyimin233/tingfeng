@@ -14,7 +14,7 @@ public interface PlannerAgent {
             tags 可选值: "mysql", "redis", "system"
               - "mysql"  → MySQL 连接数/慢查询/表结构等
               - "redis"  → Redis 内存/命中率/慢查询等
-              - "system" → CPU负载/JVM内存/线程/死锁等
+              - "system" → CPU负载/JVM内存/线程/死锁/探针快照等
             每个任务通常只有一个标签，不同工具的问题拆成独立步骤。
 
             规则：

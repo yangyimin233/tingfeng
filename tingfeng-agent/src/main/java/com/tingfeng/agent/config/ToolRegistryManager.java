@@ -11,21 +11,16 @@ import dev.langchain4j.service.AiServices;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import java.io.Closeable;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * MCP 工具源全生命周期管理器。
- * 内置 + 动态注册的工具源统一管理, 标签/路由/重建全部数据驱动。
+ * 自建 executors Map, 标签/路由/重建全部数据驱动。
  */
 @Component
 public class ToolRegistryManager {
@@ -45,27 +40,21 @@ public class ToolRegistryManager {
     private final Map<String, McpClient> clients = new ConcurrentHashMap<>();
     /** 客户端元数据: name → Meta */
     private final Map<String, ClientMeta> metas = new ConcurrentHashMap<>();
-
-    /** 标签定义: tag → (holder, description, required client names) */
+    /** 所有 Executor: tag → holder */
+    private final Map<String, DynamicExecutorHolder> executors = new ConcurrentHashMap<>();
+    /** 标签定义: tag → (描述, 依赖的 client names) */
     private final Map<String, TagDef> tagDefs = new LinkedHashMap<>();
-    /** fullExecutor — 兜底路由, 不参与 tagDefs */
-    private final DynamicExecutorHolder fullHolder;
     /** 内置客户端的原始环境变量, 用于重新注册时自动恢复 */
     private final Map<String, Map<String, String>> builtinEnvs = new ConcurrentHashMap<>();
 
     public record ClientMeta(String name, String mainClass, String jarPath,
                              boolean builtin, String tag, String tagDesc,
                              Map<String, String> env) {}
-    record TagDef(String tag, String desc, DynamicExecutorHolder holder, List<String> requires) {}
+    record TagDef(String tag, String desc, List<String> requires) {}
 
     public ToolRegistryManager(ChatModel model,
                                TingFengProperties props,
                                TingFengPersistenceProperties persistProps,
-                               @Qualifier("mysqlExecutor") DynamicExecutorHolder mysqlHolder,
-                               @Qualifier("redisExecutor") DynamicExecutorHolder redisHolder,
-                               @Qualifier("systemExecutor") DynamicExecutorHolder cpuHolder,
-                               @Qualifier("snapshotExecutor") DynamicExecutorHolder snapshotHolder,
-                               @Qualifier("fullExecutor") DynamicExecutorHolder fullHolder,
                                DynamicPlannerHolder plannerHolder,
                                @Value("${spring.data.redis.host:localhost}") String redisHost,
                                @Value("${spring.data.redis.port:6379}") int redisPort,
@@ -74,29 +63,37 @@ public class ToolRegistryManager {
         this.model = model;
         this.props = props;
         this.persistProps = persistProps;
-        this.fullHolder = fullHolder;
         this.plannerHolder = plannerHolder;
         this.redisHost = redisHost;
         this.redisPort = redisPort;
         this.redisPassword = redisPassword;
         this.redisDatabase = redisDatabase;
 
-        // 内置标签定义: tag → (holder, Planner 描述, 依赖的 client names)
+        // 创建 5 个 Executor holder
+        for (String tag : List.of("mysql", "redis", "cpu", "snapshot", "full")) {
+            executors.put(tag, new DynamicExecutorHolder(placeholderAgent()));
+        }
+
+        // 标签定义: tag → (描述, 依赖的 client names)
         tagDefs.put("mysql", new TagDef("mysql",
                 "MySQL 诊断（连接数、慢查询、Buffer Pool 命中率、锁等待、主从复制、当前查询等）",
-                mysqlHolder, List.of("mysql-mcp")));
+                List.of("mysql-mcp")));
         tagDefs.put("redis", new TagDef("redis",
                 "Redis 诊断（内存使用、命中率、慢查询、大Key扫描等）",
-                redisHolder, List.of("redis-mcp")));
+                List.of("redis-mcp")));
         tagDefs.put("cpu", new TagDef("cpu",
                 "CPU与JVM诊断（CPU负载、JVM内存/线程/死锁、GC统计、磁盘空间等）",
-                cpuHolder, List.of("cpu-mcp")));
+                List.of("cpu-mcp")));
         tagDefs.put("snapshot", new TagDef("snapshot",
                 "探针快照诊断（方法调用历史、异常记录、慢调用、响应时间等）",
-                snapshotHolder, List.of("snapshot-mcp")));
+                List.of("snapshot-mcp")));
     }
 
-    // ── 启动时自动注册内置客户端 ──
+    private ExecutorAgent placeholderAgent() {
+        return AiServices.builder(ExecutorAgent.class).chatModel(model).build();
+    }
+
+    // ── 启动 ──
 
     @PostConstruct
     public void init() {
@@ -141,15 +138,11 @@ public class ToolRegistryManager {
 
     // ── 路由 ──
 
-    public ExecutorAgent route(List<String> tags, ExecutorAgent fallback) {
-        if (tags == null || tags.size() != 1) return fallback;
-        String tag = tags.get(0).toLowerCase();
-
-        TagDef def = tagDefs.get(tag);
-        if (def != null) {
-            return def.holder; // 即使 inactive 也用自己的空 Executor, 不乱投 full
-        }
-        return fallback;
+    /** 按标签查找 Executor, 找不到回退 full */
+    public ExecutorAgent route(String tag) {
+        if (tag == null) return executors.get("full");
+        DynamicExecutorHolder h = executors.get(tag.toLowerCase());
+        return h != null ? h : executors.get("full");
     }
 
     // ── 注册 / 注销 ──
@@ -164,7 +157,6 @@ public class ToolRegistryManager {
             return Map.of("ok", false, "error", "标签 '" + tag + "' 已被活动工具源占用");
         }
 
-        // 如果重新注册已删除的内置工具源, 自动恢复原始 env 配置
         if ((env == null || env.isEmpty()) && builtinEnvs.containsKey(name)) {
             env = builtinEnvs.get(name);
         }
@@ -177,20 +169,14 @@ public class ToolRegistryManager {
         clients.put(name, client);
         metas.put(name, new ClientMeta(name, mainClass, jarPath, false, tag, tagDesc, env));
 
-        // 如果指定了 tag → 注册到 tagDefs + 创建专属 Executor
         if (tag != null && !tag.isBlank()) {
-            DynamicExecutorHolder tagHolder;
-            TagDef existing = tagDefs.get(tag);
-            if (existing != null) {
-                // 内置标签重新激活: 复用已有的 holder
-                tagHolder = existing.holder;
-                log.info("标签 '{}' 重新激活 (requires={})", tag, existing.requires);
-            } else {
-                // 全新动态标签
-                tagHolder = new DynamicExecutorHolder(buildOne(client));
+            if (!executors.containsKey(tag)) {
+                executors.put(tag, new DynamicExecutorHolder(placeholderAgent()));
+            }
+            if (!tagDefs.containsKey(tag)) {
                 tagDefs.put(tag, new TagDef(tag,
                         tagDesc != null ? tagDesc : tag + " 诊断工具",
-                        tagHolder, List.of(name)));
+                        List.of(name)));
             }
         }
 
@@ -211,9 +197,9 @@ public class ToolRegistryManager {
         try { if (client instanceof Closeable c) c.close(); }
         catch (Exception e) { log.warn("关闭 McpClient 失败: {}", e.getMessage()); }
 
-        // 清理动态标签
         if (meta != null && meta.tag != null && !isBuiltinTag(meta.tag)) {
             tagDefs.remove(meta.tag);
+            executors.remove(meta.tag);
         }
 
         rebuildAll();
@@ -249,11 +235,8 @@ public class ToolRegistryManager {
             item.put("active", active);
             item.put("requires", def.requires);
             if (!active) {
-                // 列出哪些 client 缺失
                 List<String> missing = new ArrayList<>();
-                for (String r : def.requires) {
-                    if (!clients.containsKey(r)) missing.add(r);
-                }
+                for (String r : def.requires) if (!clients.containsKey(r)) missing.add(r);
                 item.put("missingClients", missing);
             }
             tagList.add(item);
@@ -271,28 +254,23 @@ public class ToolRegistryManager {
     // ── 测试 ──
 
     public Map<String, Object> test(String question, String target) {
-        DynamicExecutorHolder holder;
-        if (target != null && !target.isBlank()) {
-            TagDef def = tagDefs.get(target);
-            holder = (def != null && isTagActive(def)) ? def.holder : fullHolder;
-        } else {
-            holder = fullHolder;
-        }
+        DynamicExecutorHolder holder = (target != null && !target.isBlank())
+                ? executors.getOrDefault(target, executors.get("full"))
+                : executors.get("full");
         long start = System.currentTimeMillis();
-        String answer;
         try {
-            answer = holder.execute(question);
+            String answer = holder.execute(question);
+            return Map.of("ok", true, "question", question, "target", target,
+                    "answer", answer, "elapsedMs", System.currentTimeMillis() - start);
         } catch (Exception e) {
             return Map.of("ok", false, "question", question, "target", target,
                     "error", e.getMessage(), "elapsedMs", System.currentTimeMillis() - start);
         }
-        return Map.of("ok", true, "question", question, "target", target,
-                "answer", answer, "elapsedMs", System.currentTimeMillis() - start);
     }
 
     public McpClient getSnapshotClient() { return clients.get("snapshot-mcp"); }
 
-    // ── 内部: 是否活动 ──
+    // ── 内部: 标签状态 ──
 
     private boolean isTagActive(TagDef def) {
         for (String r : def.requires) {
@@ -307,29 +285,22 @@ public class ToolRegistryManager {
     }
 
     private boolean isBuiltinTag(String tag) {
-        // 内置标签: 在构造函数中注册的, 不是通过 register() 动态添加的
-        return tagDefs.containsKey(tag) && tagDefs.get(tag) != null;
+        return tagDefs.containsKey(tag);
     }
 
     private List<String> activeTags() {
         List<String> list = new ArrayList<>();
         for (var entry : tagDefs.entrySet()) {
-            if (isTagActive(entry.getValue())) {
-                list.add(entry.getKey());
-            }
+            if (isTagActive(entry.getValue())) list.add(entry.getKey());
         }
         return list;
     }
 
     private List<TagDef> activeTagDefs() {
-        List<TagDef> list = new ArrayList<>();
-        for (TagDef def : tagDefs.values()) {
-            if (isTagActive(def)) list.add(def);
-        }
-        return list;
+        return tagDefs.values().stream().filter(this::isTagActive).toList();
     }
 
-    // ── 内部: 子进程启动 ──
+    // ── 子进程启动 ──
 
     private McpClient launchClient(String name, String mainClass,
                                     String jarPath, Map<String, String> env) {
@@ -338,13 +309,10 @@ public class ToolRegistryManager {
             if (jarPath != null && !jarPath.isBlank()) {
                 classpath = classpath + java.io.File.pathSeparator + jarPath.trim();
             }
-            String javaExe = ProcessHandle.current()
-                    .info().command()
+            String javaExe = ProcessHandle.current().info().command()
                     .orElse(System.getProperty("java.home") + "/bin/java");
 
-            List<String> cmd = new ArrayList<>();
-            cmd.add(javaExe); cmd.add("-cp"); cmd.add(classpath); cmd.add(mainClass);
-
+            List<String> cmd = List.of(javaExe, "-cp", classpath, mainClass);
             log.info("启动工具源子进程: name={}, mainClass={}", name, mainClass);
             return DefaultMcpClient.builder()
                     .key("tool-" + name)
@@ -360,64 +328,49 @@ public class ToolRegistryManager {
         }
     }
 
-    // ── 内部: 重建 Executor ──
+    // ── 重建 ──
 
     private void rebuildAll() {
-        // 数据驱动: 每个标签用其 requires 中的 client
         for (TagDef def : tagDefs.values()) {
+            DynamicExecutorHolder holder = executors.get(def.tag);
+            if (holder == null) continue;
             if (isTagActive(def)) {
-                rebuildOne(def.holder, "tag:" + def.tag, def.requires);
+                rebuildOne(holder, def.tag, def.requires);
             } else {
-                // 标签不活动 → 给空工具集, Executor 会如实报告
-                rebuildOne(def.holder, "tag:" + def.tag, List.of());
+                rebuildOne(holder, def.tag, List.of());
             }
         }
-
-        // fullExecutor: 所有活跃 client 的全集
-        List<String> allClientNames = new ArrayList<>(clients.keySet());
-        rebuildOne(fullHolder, "full", allClientNames);
-    }
-
-    private ExecutorAgent buildOne(McpClient client) {
-        // 为动态 tag 构建 Executor: 基础 client 全集 + 该 extra
-        List<String> names = new ArrayList<>(clients.keySet());
-        names.add("__dynamic__"); // 占位, 实际用 client 数组构建
-        List<McpClient> all = new ArrayList<>(clients.values());
-        all.add(client);
-        return buildAgent(all, "dynamic");
+        // full: 所有活跃 client
+        rebuildOne(executors.get("full"), "full", new ArrayList<>(clients.keySet()));
     }
 
     private void rebuildOne(DynamicExecutorHolder holder, String label, List<String> requiredNames) {
-        List<McpClient> requiredClients = new ArrayList<>();
+        List<McpClient> list = new ArrayList<>();
         for (String name : requiredNames) {
             McpClient c = clients.get(name);
-            if (c != null) requiredClients.add(c);
+            if (c != null) list.add(c);
         }
 
-        ExecutorAgent agent = buildAgent(requiredClients, label);
-        holder.swap(agent);
-        log.info("{}-Executor 已重建, clients={}", label, requiredClients.size());
-    }
-
-    private ExecutorAgent buildAgent(List<McpClient> clientList, String label) {
-        if (clientList.isEmpty()) {
-            return AiServices.builder(ExecutorAgent.class)
+        ExecutorAgent agent;
+        if (list.isEmpty()) {
+            agent = placeholderAgent();
+        } else {
+            agent = AiServices.builder(ExecutorAgent.class)
                     .chatModel(model)
+                    .toolProvider(McpToolProvider.builder()
+                            .mcpClients(list.toArray(McpClient[]::new))
+                            .failIfOneServerFails(false)
+                            .build())
                     .build();
         }
-        McpToolProvider provider = McpToolProvider.builder()
-                .mcpClients(clientList.toArray(McpClient[]::new))
-                .failIfOneServerFails(false)
-                .build();
-        return AiServices.builder(ExecutorAgent.class)
-                .chatModel(model)
-                .toolProvider(provider)
-                .build();
+        holder.swap(agent);
+        log.info("{}-Executor 已重建, clients={}", label, list.size());
     }
 
     private void rebuildPlanner() {
-        StringBuilder msg = new StringBuilder();
-        msg.append("""
+        List<TagDef> active = activeTagDefs();
+
+        StringBuilder msg = new StringBuilder("""
                 你是一个运维诊断规划师。根据用户问题，输出结构化的排查计划。
 
                 如果用户问题与IT运维、Redis、MySQL、服务器诊断无关（比如闲聊、育儿、医疗等），返回空数组 [].
@@ -427,7 +380,6 @@ public class ToolRegistryManager {
 
                 """);
 
-        List<TagDef> active = activeTagDefs();
         if (active.isEmpty()) {
             msg.append("当前无可用诊断工具，请先注册工具源。\n");
         } else {
@@ -446,13 +398,11 @@ public class ToolRegistryManager {
                 5. 只能使用上面列出的标签，不要编造标签名
                 """);
 
-        // 动态示例: 只展示当前 active 的标签
         if (!active.isEmpty()) {
             msg.append("\n输出格式示例：\n[\n");
             int n = Math.min(active.size(), 3);
             for (int i = 0; i < n; i++) {
-                TagDef def = active.get(i);
-                msg.append("  {\"task\":\"...\",\"tags\":[\"").append(def.tag).append("\"]}");
+                msg.append("  {\"task\":\"...\",\"tags\":[\"").append(active.get(i).tag).append("\"]}");
                 if (i < n - 1) msg.append(",");
                 msg.append("\n");
             }
@@ -471,10 +421,9 @@ public class ToolRegistryManager {
 
     private Map<String, Object> holderHashes() {
         Map<String, Object> h = new LinkedHashMap<>();
-        for (var entry : tagDefs.entrySet()) {
-            h.put(entry.getKey(), entry.getValue().holder.delegateHash());
+        for (var e : executors.entrySet()) {
+            h.put(e.getKey(), e.getValue().delegateHash());
         }
-        h.put("full", fullHolder.delegateHash());
         return h;
     }
 }

@@ -10,7 +10,6 @@ import com.tingfeng.agent.config.ToolRegistryManager;
 import dev.langchain4j.mcp.client.McpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -30,7 +29,6 @@ public class AgentWorkflowService {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final PlannerAgent planner;
-    private final ExecutorAgent fullExecutor;
     private final ReporterAgent reporter;
     private final RagService ragService;
     private final ToolRegistryManager registryManager;
@@ -38,13 +36,11 @@ public class AgentWorkflowService {
     private final int taskTimeoutSeconds;
 
     public AgentWorkflowService(PlannerAgent planner,
-                                 @Qualifier("fullExecutor") ExecutorAgent fullExecutor,
                                  ReporterAgent reporter,
                                  RagService ragService,
                                  ToolRegistryManager registryManager,
                                  TingFengProperties props) {
         this.planner = planner;
-        this.fullExecutor = fullExecutor;
         this.reporter = reporter;
         this.ragService = ragService;
         this.registryManager = registryManager;
@@ -192,9 +188,10 @@ public class AgentWorkflowService {
         }
     }
 
-    /** 按标签路由 Executor, 动态标签委托 ToolRegistryManager 解析 */
+    /** 按标签路由 Executor, 委托 ToolRegistryManager 解析 */
     private ExecutorAgent routeByTags(List<String> tags) {
-        return registryManager.route(tags, fullExecutor);
+        String tag = (tags != null && tags.size() == 1) ? tags.get(0) : null;
+        return registryManager.route(tag);
     }
 
     // ── Planner 调用 + JSON 解析 ──

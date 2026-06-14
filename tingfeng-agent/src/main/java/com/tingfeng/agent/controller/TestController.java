@@ -1,8 +1,7 @@
 package com.tingfeng.agent.controller;
 
-import com.tingfeng.agent.agent.ExecutorAgent;
+import com.tingfeng.agent.config.ToolRegistryManager;
 import dev.langchain4j.model.chat.ChatModel;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,12 +14,11 @@ import java.util.Map;
 public class TestController {
 
     private final ChatModel model;
-    private final ExecutorAgent executorAgent;
+    private final ToolRegistryManager registryManager;
 
-    public TestController(ChatModel model,
-                           @Qualifier("fullExecutor") ExecutorAgent executorAgent) {
+    public TestController(ChatModel model, ToolRegistryManager registryManager) {
         this.model = model;
-        this.executorAgent = executorAgent;
+        this.registryManager = registryManager;
     }
 
     @GetMapping("/pure-chat")
@@ -31,7 +29,7 @@ public class TestController {
 
     @GetMapping("/tool-chat")
     public Map<String, Object> testToolChat(@RequestParam(defaultValue = "帮我检查一下MySQL的连接数") String msg) {
-        String response = executorAgent.execute(msg);
+        String response = registryManager.route("full").execute(msg);
         return Map.of("mode", "Tool-Use (有工具)", "question", msg, "response", response);
     }
 }

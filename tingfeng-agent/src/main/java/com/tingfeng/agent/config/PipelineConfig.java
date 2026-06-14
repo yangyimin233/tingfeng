@@ -3,14 +3,11 @@ package com.tingfeng.agent.config;
 import com.tingfeng.agent.agent.ExecutorAgent;
 import com.tingfeng.agent.agent.PlannerAgent;
 import com.tingfeng.agent.agent.ReporterAgent;
-import com.tingfeng.agent.tool.RedisDiagnosticTools;
-import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.service.AiServices;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -22,66 +19,55 @@ public class PipelineConfig {
     private static final Logger log = LoggerFactory.getLogger(PipelineConfig.class);
 
     @Bean
-    PlannerAgent plannerAgent(ChatModel model) {
-        return AiServices.builder(PlannerAgent.class)
+    DynamicPlannerHolder plannerAgent(ChatModel model) {
+        // 初始占位 Planner, ToolRegistryManager.init() 会重建为真实版本
+        PlannerAgent agent = AiServices.builder(PlannerAgent.class)
                 .chatModel(model)
+                .systemMessage("系统初始化中, 工具标签尚未加载...")
                 .build();
+        return new DynamicPlannerHolder(agent);
     }
 
-    // ── 三类 Executor: 按工具分组, 减少 token 浪费 ──
+    // ── 四类 Executor: 启动时为空壳, ToolRegistryManager.init() 自动注入工具 ──
 
     @Bean
-    ExecutorAgent mysqlExecutor(TingFengProperties props,
-                                 ChatModel cloudModel,
-                                 @Qualifier("mysqlMcpToolProvider") McpToolProvider mcpToolProvider) {
+    DynamicExecutorHolder mysqlExecutor(TingFengProperties props, ChatModel cloudModel) {
         ChatModel model = selectModel(props, cloudModel);
-        log.info("MySQL Executor 模型: {}", modelLabel(props));
-        return AiServices.builder(ExecutorAgent.class)
-                .chatModel(model)
-                .toolProvider(mcpToolProvider)
-                .build();
-    }
-
-    @Bean
-    ExecutorAgent redisExecutor(TingFengProperties props,
-                                 ChatModel cloudModel,
-                                 RedisDiagnosticTools redisTools) {
-        ChatModel model = selectModel(props, cloudModel);
-        log.info("Redis Executor 模型: {}", modelLabel(props));
-        return AiServices.builder(ExecutorAgent.class)
-                .chatModel(model)
-                .tools(redisTools)
-                .build();
+        ExecutorAgent agent = AiServices.builder(ExecutorAgent.class)
+                .chatModel(model).build(); // placeholder, 由 ToolRegistryManager 重建
+        return new DynamicExecutorHolder(agent);
     }
 
     @Bean
-    ExecutorAgent systemExecutor(TingFengProperties props,
-                                  ChatModel cloudModel,
-                                  @Qualifier("cpuMcpToolProvider") McpToolProvider cpuProvider,
-                                  @Qualifier("snapshotMcpToolProvider") McpToolProvider snapshotProvider) {
+    DynamicExecutorHolder redisExecutor(TingFengProperties props, ChatModel cloudModel) {
         ChatModel model = selectModel(props, cloudModel);
-        log.info("System Executor 模型: {}", modelLabel(props));
-        return AiServices.builder(ExecutorAgent.class)
-                .chatModel(model)
-                .toolProvider(cpuProvider)
-                .toolProvider(snapshotProvider)
-                .build();
+        ExecutorAgent agent = AiServices.builder(ExecutorAgent.class)
+                .chatModel(model).build();
+        return new DynamicExecutorHolder(agent);
     }
 
     @Bean
-    ExecutorAgent fullExecutor(TingFengProperties props,
-                                ChatModel cloudModel,
-                                RedisDiagnosticTools redisTools,
-                                McpToolProvider mcpToolProvider,
-                                @Qualifier("snapshotMcpToolProvider") McpToolProvider snapshotProvider) {
+    DynamicExecutorHolder systemExecutor(TingFengProperties props, ChatModel cloudModel) {
         ChatModel model = selectModel(props, cloudModel);
-        log.info("Full Executor 模型: {}", modelLabel(props));
-        return AiServices.builder(ExecutorAgent.class)
-                .chatModel(model)
-                .tools(redisTools)
-                .toolProvider(mcpToolProvider)
-                .toolProvider(snapshotProvider)
-                .build();
+        ExecutorAgent agent = AiServices.builder(ExecutorAgent.class)
+                .chatModel(model).build();
+        return new DynamicExecutorHolder(agent);
+    }
+
+    @Bean
+    DynamicExecutorHolder snapshotExecutor(TingFengProperties props, ChatModel cloudModel) {
+        ChatModel model = selectModel(props, cloudModel);
+        ExecutorAgent agent = AiServices.builder(ExecutorAgent.class)
+                .chatModel(model).build();
+        return new DynamicExecutorHolder(agent);
+    }
+
+    @Bean
+    DynamicExecutorHolder fullExecutor(TingFengProperties props, ChatModel cloudModel) {
+        ChatModel model = selectModel(props, cloudModel);
+        ExecutorAgent agent = AiServices.builder(ExecutorAgent.class)
+                .chatModel(model).build();
+        return new DynamicExecutorHolder(agent);
     }
 
     @Bean

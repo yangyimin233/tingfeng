@@ -10,9 +10,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,14 +116,17 @@ public class SnapshotMcpServer {
 
         StringBuilder sql = new StringBuilder(
                 "SELECT method_name, request_time, rt_ms, success, error_msg FROM tingfeng_snapshot WHERE 1=1");
+        List<Object> params = new ArrayList<>();
         if (method != null && !method.isBlank()) {
-            sql.append(" AND method_name LIKE '%").append(method.replace("'", "''")).append("%'");
+            sql.append(" AND method_name LIKE ?");
+            params.add("%" + method + "%");
         }
         if (errorOnly) sql.append(" AND success=0");
-        sql.append(" ORDER BY request_time DESC LIMIT ").append(limit);
+        sql.append(" ORDER BY request_time DESC LIMIT ?");
+        params.add(limit);
 
         try {
-            return queryToJson(sql.toString());
+            return queryToJson(sql.toString(), params.toArray());
         } catch (Exception e) {
             return "查询失败: " + e.getMessage();
         }
@@ -160,8 +163,16 @@ public class SnapshotMcpServer {
     private static void sendResourceRead(Object id, JsonNode params) {
         String uri = params.path("uri").asText();
         try {
-            String sql = parseUri(uri);
-            String json = queryToJson(sql);
+            String json;
+            if (uri.startsWith("snapshot://method/")) {
+                String name = uri.substring("snapshot://method/".length());
+                String sql = "SELECT method_name, args, return_value, request_time, rt_ms, success, error_msg " +
+                       "FROM tingfeng_snapshot WHERE method_name = ? " +
+                       "AND request_time >" + unixMinus(60) + " ORDER BY request_time DESC LIMIT 20";
+                json = queryToJson(sql, name);
+            } else {
+                json = queryToJson(parseUri(uri));
+            }
             ArrayNode content = MAPPER.createArrayNode();
             ObjectNode item = content.addObject();
             item.put("uri", uri);
@@ -175,7 +186,7 @@ public class SnapshotMcpServer {
         }
     }
 
-    /** URI 路由 → SQL */
+    /** URI 路由 → SQL (不含用户输入参数, 参数由 sendResourceRead 单独处理) */
     private static String parseUri(String uri) {
         if ("snapshot://errors".equals(uri)) {
             return "SELECT method_name, args, return_value, request_time, rt_ms, error_msg " +
@@ -198,34 +209,40 @@ public class SnapshotMcpServer {
                    "FROM tingfeng_snapshot WHERE request_time >" + unixMinus(30) +
                    " ORDER BY request_time DESC LIMIT " + limit;
         }
-        if (uri.startsWith("snapshot://method/")) {
-            String name = uri.substring("snapshot://method/".length()).replace("'", "''");
-            return "SELECT method_name, args, return_value, request_time, rt_ms, success, error_msg " +
-                   "FROM tingfeng_snapshot WHERE method_name = '" + name + "' " +
-                   "AND request_time >" + unixMinus(60) + " ORDER BY request_time DESC LIMIT 20";
-        }
         throw new IllegalArgumentException("未知资源: " + uri);
     }
 
-    // ── 查询转 JSON ──
+    // ── 查询转 JSON (PreparedStatement 防注入) ──
 
-    private static String queryToJson(String sql) throws Exception {
+    private static String queryToJson(String sql, Object... params) throws Exception {
         try (Connection conn = getPersistenceConnection();
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
 
-            ResultSetMetaData meta = rs.getMetaData();
-            int cols = meta.getColumnCount();
-            ArrayNode rows = MAPPER.createArrayNode();
-
-            while (rs.next()) {
-                ObjectNode row = MAPPER.createObjectNode();
-                for (int i = 1; i <= cols; i++) {
-                    row.put(meta.getColumnName(i), String.valueOf(rs.getObject(i)));
-                }
-                rows.add(row);
+            for (int i = 0; i < params.length; i++) {
+                pstmt.setObject(i + 1, params[i]);
             }
-            return MAPPER.writeValueAsString(rows);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                ResultSetMetaData meta = rs.getMetaData();
+                int cols = meta.getColumnCount();
+                ArrayNode rows = MAPPER.createArrayNode();
+
+                while (rs.next()) {
+                    ObjectNode row = MAPPER.createObjectNode();
+                    for (int i = 1; i <= cols; i++) {
+                        Object val = rs.getObject(i);
+                        if (val instanceof Number n) {
+                            row.put(meta.getColumnName(i), n.doubleValue());
+                        } else if (val instanceof Boolean b) {
+                            row.put(meta.getColumnName(i), b);
+                        } else {
+                            row.put(meta.getColumnName(i), val != null ? val.toString() : null);
+                        }
+                    }
+                    rows.add(row);
+                }
+                return MAPPER.writeValueAsString(rows);
+            }
         }
     }
 

@@ -135,6 +135,63 @@ public class MySqlMcpServer {
                 .put("type", "string")
                 .put("description", "此工具无需参数");
 
+        // 工具 4: mysql_buffer_pool
+        ObjectNode bufTool = tools.addObject();
+        bufTool.put("name", "mysql_buffer_pool");
+        bufTool.put("description",
+                "获取 InnoDB Buffer Pool 命中率 — MySQL 最重要的性能指标。"
+                + "命中率低于 99% 意味着大量读取命中磁盘，是'突然变慢'的首要排查项。"
+                + "同时返回 Buffer Pool 大小和脏页比例。");
+        bufTool.putObject("inputSchema")
+                .put("type", "object")
+                .putObject("properties")
+                .putObject("placeholder")
+                .put("type", "string")
+                .put("description", "此工具无需参数");
+
+        // 工具 5: mysql_running_queries
+        ObjectNode runTool = tools.addObject();
+        runTool.put("name", "mysql_running_queries");
+        runTool.put("description",
+                "获取 MySQL 当前正在执行的查询列表（非 Sleep 状态）。"
+                + "包括执行时长、状态、SQL 文本。比慢查询日志更实时，"
+                + "直接定位'此时此刻'消耗资源的 SQL。"
+                + "可选参数 minTime: 仅返回执行超过 N 秒的查询, 默认 0 返回全部。");
+        ObjectNode runSchema = runTool.putObject("inputSchema");
+        runSchema.put("type", "object");
+        ObjectNode runProps = runSchema.putObject("properties");
+        runProps.putObject("minTime")
+                .put("type", "integer")
+                .put("description", "最小执行秒数过滤, 默认 0");
+
+        // 工具 6: mysql_replication
+        ObjectNode replTool = tools.addObject();
+        replTool.put("name", "mysql_replication");
+        replTool.put("description",
+                "获取 MySQL 主从复制状态。"
+                + "包括 Slave_IO_Running、Slave_SQL_Running、Seconds_Behind_Master、"
+                + "复制延迟秒数等。用于诊断主从同步异常和数据延迟问题。");
+        replTool.putObject("inputSchema")
+                .put("type", "object")
+                .putObject("properties")
+                .putObject("placeholder")
+                .put("type", "string")
+                .put("description", "此工具无需参数");
+
+        // 工具 7: mysql_lock_waits
+        ObjectNode lockTool = tools.addObject();
+        lockTool.put("name", "mysql_lock_waits");
+        lockTool.put("description",
+                "获取 InnoDB 锁等待链信息。"
+                + "包括等待事务ID、等待SQL、阻塞事务ID、阻塞SQL。"
+                + "用于诊断'锁超时'和'事务阻塞'类问题，定位阻塞源头。");
+        lockTool.putObject("inputSchema")
+                .put("type", "object")
+                .putObject("properties")
+                .putObject("placeholder")
+                .put("type", "string")
+                .put("description", "此工具无需参数");
+
         ObjectNode result = MAPPER.createObjectNode();
         result.set("tools", tools);
         send(requestId, result);
@@ -156,6 +213,18 @@ public class MySqlMcpServer {
                     break;
                 case "mysql_connections":
                     text = checkConnections();
+                    break;
+                case "mysql_buffer_pool":
+                    text = checkBufferPool();
+                    break;
+                case "mysql_running_queries":
+                    text = checkRunningQueries(arguments);
+                    break;
+                case "mysql_replication":
+                    text = checkReplication();
+                    break;
+                case "mysql_lock_waits":
+                    text = checkLockWaits();
                     break;
                 default:
                     sendError(requestId, -32602, "Unknown tool: " + toolName);
@@ -182,7 +251,8 @@ public class MySqlMcpServer {
         String db   = env("MYSQL_DB", "");
 
         String url = "jdbc:mysql://" + host + ":" + port + "/" + db
-                + "?useSSL=false&allowPublicKeyRetrieval=true&connectTimeout=5000";
+                + "?useSSL=false&allowPublicKeyRetrieval=true&connectTimeout=5000"
+                + "&allowMultiQueries=false";
         return DriverManager.getConnection(url, user, pass);
     }
 
@@ -191,11 +261,10 @@ public class MySqlMcpServer {
             return "错误：SQL 语句为空";
         }
         String upper = sql.trim().toUpperCase();
-        if (upper.startsWith("INSERT") || upper.startsWith("UPDATE")
-                || upper.startsWith("DELETE") || upper.startsWith("DROP")
-                || upper.startsWith("ALTER") || upper.startsWith("CREATE")
-                || upper.startsWith("TRUNCATE")) {
-            return "错误：仅允许只读查询（SELECT/SHOW/DESCRIBE/EXPLAIN）";
+        if (!upper.startsWith("SELECT") && !upper.startsWith("SHOW")
+                && !upper.startsWith("DESCRIBE") && !upper.startsWith("EXPLAIN")
+                && !upper.startsWith("WITH")) {
+            return "错误：仅允许只读查询（SELECT/SHOW/DESCRIBE/EXPLAIN/WITH）";
         }
 
         try (Connection conn = getConnection();
@@ -367,6 +436,317 @@ public class MySqlMcpServer {
             return "连接诊断失败: " + e.getMessage();
         }
         return sb.toString();
+    }
+
+    private static String checkBufferPool() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== InnoDB Buffer Pool 命中率诊断 ===\n\n");
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            ResultSet rs = stmt.executeQuery(
+                    "SHOW STATUS LIKE 'Innodb_buffer_pool_read%'");
+            long readRequests = 0;
+            long reads = 0;
+            while (rs.next()) {
+                String name = rs.getString(1);
+                long val = rs.getLong(2);
+                sb.append("  ").append(name).append(" = ").append(val).append("\n");
+                if ("Innodb_buffer_pool_read_requests".equals(name)) readRequests = val;
+                if ("Innodb_buffer_pool_reads".equals(name)) reads = val;
+            }
+            rs.close();
+
+            sb.append("\n[命中率]\n");
+            if (readRequests > 0) {
+                double hitRate = (1.0 - (double) reads / readRequests) * 100;
+                sb.append(String.format("  Buffer Pool 命中率: %.2f%%\n", hitRate));
+                sb.append(String.format("  物理读(读磁盘): %d\n", reads));
+                sb.append(String.format("  逻辑读(读缓存): %d\n", readRequests));
+                if (hitRate < 95) {
+                    sb.append("  ⚠️ 命中率严重偏低! 大量读取命中磁盘，建议增大 buffer_pool_size\n");
+                } else if (hitRate < 99) {
+                    sb.append("    命中率偏低，需关注趋势，考虑增大 buffer_pool_size\n");
+                } else if (hitRate < 99.9) {
+                    sb.append("    正常，偶有物理读取\n");
+                } else {
+                    sb.append("  ✅ 命中率优秀\n");
+                }
+            }
+
+            ResultSet vars = stmt.executeQuery(
+                    "SHOW VARIABLES LIKE 'innodb_buffer_pool_size'");
+            sb.append("\n[Buffer Pool 配置]\n");
+            while (vars.next()) {
+                long sizeBytes = vars.getLong(2);
+                sb.append("  innodb_buffer_pool_size = ")
+                        .append(formatBytes(sizeBytes)).append("\n");
+            }
+            vars.close();
+
+            ResultSet dirty = stmt.executeQuery(
+                    "SHOW STATUS LIKE 'Innodb_buffer_pool_pages_dirty'");
+            ResultSet total = stmt.executeQuery(
+                    "SHOW STATUS LIKE 'Innodb_buffer_pool_pages_total'");
+            if (dirty.next() && total.next()) {
+                long dirtyPages = dirty.getLong(2);
+                long totalPages = total.getLong(2);
+                if (totalPages > 0) {
+                    double dirtyPct = (double) dirtyPages / totalPages * 100;
+                    sb.append(String.format("  脏页比例: %.1f%% (%d / %d pages)\n",
+                            dirtyPct, dirtyPages, totalPages));
+                    if (dirtyPct > 50) {
+                        sb.append("  ⚠️ 脏页比例偏高，可能有刷盘压力\n");
+                    }
+                }
+            }
+            dirty.close();
+            total.close();
+
+        } catch (Exception e) {
+            return "Buffer Pool 诊断失败: " + e.getMessage();
+        }
+        return sb.toString();
+    }
+
+    private static String checkRunningQueries(JsonNode args) {
+        int minTime = args.has("minTime") ? args.get("minTime").asInt() : 0;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== 当前运行的查询 ===\n\n");
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            String sql = "SELECT ID, USER, HOST, DB, TIME, STATE, "
+                    + "IF(LENGTH(INFO) > 300, CONCAT(LEFT(INFO, 300), '...'), INFO) AS INFO "
+                    + "FROM information_schema.PROCESSLIST "
+                    + "WHERE COMMAND != 'Sleep'";
+            if (minTime > 0) sql += " AND TIME >= " + minTime;
+            sql += " ORDER BY TIME DESC LIMIT 20";
+
+            ResultSet rs = stmt.executeQuery(sql);
+            sb.append("| 连接ID | 用户 | 来源 | 数据库 | 执行秒 | 状态 | SQL |\n");
+            sb.append("|--------|------|------|--------|--------|------|-----|\n");
+
+            int count = 0;
+            while (rs.next()) {
+                count++;
+                sb.append("| ").append(rs.getInt(1))
+                        .append(" | ").append(trunc(rs.getString(2), 10))
+                        .append(" | ").append(trunc(rs.getString(3), 18))
+                        .append(" | ").append(trunc(rs.getString(4), 10))
+                        .append(" | ").append(rs.getInt(5))
+                        .append(" | ").append(trunc(rs.getString(6), 12))
+                        .append(" | ").append(trunc(rs.getString(7), 40))
+                        .append(" |\n");
+            }
+            rs.close();
+
+            if (count == 0) {
+                sb.append("（当前无运行中的查询）\n");
+            } else {
+                sb.append("\n共 ").append(count).append(" 条运行中的查询\n");
+            }
+
+            // 锁等待
+            try {
+                ResultSet lockRs = stmt.executeQuery(
+                        "SELECT COUNT(*) as lock_waits FROM information_schema.PROCESSLIST "
+                        + "WHERE STATE LIKE '%lock%'");
+                if (lockRs.next()) {
+                    int lockWaits = lockRs.getInt(1);
+                    if (lockWaits > 0) {
+                        sb.append("⚠️ 有 ").append(lockWaits).append(" 个会话处于锁等待状态!\n");
+                    }
+                }
+                lockRs.close();
+            } catch (Exception ignored) {}
+
+        } catch (Exception e) {
+            return "运行查询诊断失败: " + e.getMessage();
+        }
+        return sb.toString();
+    }
+
+    private static String checkReplication() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== MySQL 主从复制状态 ===\n\n");
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // Try SHOW REPLICA STATUS (MySQL 8.0+)
+            try {
+                ResultSet rs = stmt.executeQuery("SHOW REPLICA STATUS");
+                if (rs.next()) {
+                    formatReplicationResult(rs, sb);
+                    rs.close();
+                    return sb.toString();
+                }
+                rs.close();
+            } catch (Exception e) {
+                // Fallback to SHOW SLAVE STATUS (MySQL 5.7)
+            }
+
+            try {
+                ResultSet rs = stmt.executeQuery("SHOW SLAVE STATUS");
+                if (rs.next()) {
+                    formatReplicationResult(rs, sb);
+                    rs.close();
+                    return sb.toString();
+                }
+                rs.close();
+            } catch (Exception e) {
+                return "未配置主从复制, 或无法获取复制状态: " + e.getMessage();
+            }
+
+        } catch (Exception e) {
+            return "复制状态诊断失败: " + e.getMessage();
+        }
+        return "未配置主从复制";
+    }
+
+    private static void formatReplicationResult(ResultSet rs, StringBuilder sb) throws Exception {
+        sb.append(String.format("  Slave_IO_Running: %s\n",
+                rs.getString("Slave_IO_Running")));
+        sb.append(String.format("  Slave_SQL_Running: %s\n",
+                rs.getString("Slave_SQL_Running")));
+        Object behind = rs.getObject("Seconds_Behind_Master");
+        String behindStr = behind != null ? behind.toString() : "NULL";
+        sb.append(String.format("  Seconds_Behind_Master: %s\n", behindStr));
+        sb.append(String.format("  Master_Host: %s\n",
+                rs.getString("Master_Host")));
+        sb.append(String.format("  Master_Log_File: %s\n",
+                rs.getString("Master_Log_File")));
+        sb.append(String.format("  Relay_Log_File: %s\n",
+                rs.getString("Relay_Log_File")));
+        sb.append(String.format("  Last_IO_Errno: %s\n",
+                rs.getString("Last_IO_Errno")));
+        sb.append(String.format("  Last_IO_Error: %s\n",
+                rs.getString("Last_IO_Error")));
+        sb.append(String.format("  Last_SQL_Errno: %s\n",
+                rs.getString("Last_SQL_Errno")));
+        sb.append(String.format("  Last_SQL_Error: %s\n",
+                rs.getString("Last_SQL_Error")));
+
+        String ioRunning = rs.getString("Slave_IO_Running");
+        String sqlRunning = rs.getString("Slave_SQL_Running");
+        try {
+            long lag = Long.parseLong(behindStr);
+            if (lag > 60) {
+                sb.append("\n  ⚠️ 主从延迟超过 60 秒!\n");
+            } else if ("No".equals(ioRunning) || "No".equals(sqlRunning)) {
+                sb.append("\n  ⚠️ 复制线程已停止!\n");
+            } else {
+                sb.append("\n  ✅ 复制状态正常\n");
+            }
+        } catch (NumberFormatException e) {
+            if ("No".equals(ioRunning) || "No".equals(sqlRunning)) {
+                sb.append("\n  ⚠️ 复制线程已停止!\n");
+            }
+        }
+    }
+
+    private static String checkLockWaits() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("=== InnoDB 锁等待分析 ===\n\n");
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement()) {
+
+            // Try MySQL 8.0+ performance_schema approach
+            try {
+                ResultSet rs = stmt.executeQuery(
+                        "SELECT r.PROCESSLIST_ID AS waiting_tid, "
+                        + "IF(LENGTH(r.PROCESSLIST_INFO) > 200, "
+                        + "CONCAT(LEFT(r.PROCESSLIST_INFO, 200), '...'), "
+                        + "r.PROCESSLIST_INFO) AS waiting_query, "
+                        + "b.PROCESSLIST_ID AS blocking_tid, "
+                        + "IF(LENGTH(b.PROCESSLIST_INFO) > 200, "
+                        + "CONCAT(LEFT(b.PROCESSLIST_INFO, 200), '...'), "
+                        + "b.PROCESSLIST_INFO) AS blocking_query "
+                        + "FROM performance_schema.data_lock_waits w "
+                        + "JOIN performance_schema.threads r "
+                        + "ON w.REQUESTING_THREAD_ID = r.THREAD_ID "
+                        + "JOIN performance_schema.threads b "
+                        + "ON w.BLOCKING_THREAD_ID = b.THREAD_ID LIMIT 20");
+
+                return formatLockResults(rs, sb);
+            } catch (Exception e) {
+                sb.append("  performance_schema 方案不可用, 尝试 sys schema...\n");
+            }
+
+            // Fallback: try sys.innodb_lock_waits
+            try {
+                ResultSet rs = stmt.executeQuery(
+                        "SELECT waiting_pid AS waiting_tid, "
+                        + "waiting_query, blocking_pid AS blocking_tid, "
+                        + "blocking_query FROM sys.innodb_lock_waits LIMIT 20");
+
+                return formatLockResults(rs, sb);
+            } catch (Exception e) {
+                sb.append("  sys schema 不可用, 尝试传统 INFORMATION_SCHEMA...\n");
+            }
+
+            // Fallback: old MySQL 5.x approach
+            try {
+                ResultSet rs = stmt.executeQuery(
+                        "SELECT requesting_trx_id, "
+                        + "blocking_trx_id FROM information_schema.INNODB_LOCK_WAITS");
+                sb.append("| 等待事务ID | 阻塞事务ID |\n");
+                sb.append("|-----------|------------|\n");
+                int count = 0;
+                while (rs.next()) {
+                    count++;
+                    sb.append("| ").append(rs.getString(1))
+                            .append(" | ").append(rs.getString(2))
+                            .append(" |\n");
+                }
+                if (count == 0) {
+                    sb.append("（当前无锁等待）\n");
+                } else {
+                    sb.append("\n共 ").append(count).append(" 条锁等待关系\n");
+                }
+                rs.close();
+            } catch (Exception ee) {
+                return "锁等待分析不可用: " + ee.getMessage();
+            }
+
+        } catch (Exception e) {
+            return "锁等待诊断失败: " + e.getMessage();
+        }
+        return sb.toString();
+    }
+
+    private static String formatLockResults(ResultSet rs, StringBuilder sb) throws Exception {
+        sb.append("| 等待线程ID | 等待SQL | 阻塞线程ID | 阻塞SQL |\n");
+        sb.append("|-----------|---------|-----------|--------|\n");
+        int count = 0;
+        while (rs.next()) {
+            count++;
+            sb.append("| ").append(rs.getString("waiting_tid"))
+                    .append(" | ").append(trunc(rs.getString("waiting_query"), 30))
+                    .append(" | ").append(rs.getString("blocking_tid"))
+                    .append(" | ").append(trunc(rs.getString("blocking_query"), 30))
+                    .append(" |\n");
+        }
+        if (count == 0) {
+            sb.append("（当前无锁等待）\n");
+        } else {
+            sb.append("\n共 ").append(count).append(" 条锁等待链\n");
+            sb.append("⚠️ 存在锁等待! 阻塞线程 ID 是锁的持有者，需要优先处理。\n");
+        }
+        rs.close();
+        return sb.toString();
+    }
+
+    private static String formatBytes(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
+        return String.format("%.2f GB", bytes / (1024.0 * 1024 * 1024));
     }
 
     // ── JSON-RPC 发送 ──

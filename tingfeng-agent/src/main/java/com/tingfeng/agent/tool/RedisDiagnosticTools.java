@@ -1,8 +1,11 @@
 package com.tingfeng.agent.tool;
 
 import dev.langchain4j.agent.tool.Tool;
+import org.springframework.data.redis.connection.DataType;
 import org.springframework.data.redis.connection.ReturnType;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -113,6 +116,101 @@ public class RedisDiagnosticTools {
 
             return sb.toString();
         });
+    }
+
+    @Tool("扫描 Redis 中大 Key，返回按大小排序的 TOP 20 列表。" +
+          "扫描样本数 maxScan 默认 500，最大 1000。" +
+          "字符串 key 的单位为字节，集合类型为元素个数。" +
+          "用于诊断 Redis 内存占用瓶颈，定位哪些 key 消耗了最多内存。")
+    public String getRedisBigKeys(int maxScan) {
+        if (maxScan <= 0) maxScan = 500;
+        int limit = Math.min(maxScan, 1000);
+
+        return redis.execute((RedisCallback<String>) connection -> {
+            List<KeySizeEntry> entries = new ArrayList<>();
+            int scanned = 0;
+
+            try (Cursor<byte[]> cursor = connection.keyCommands()
+                    .scan(ScanOptions.scanOptions().count(200).build())) {
+                while (cursor.hasNext() && scanned < limit) {
+                    byte[] keyBytes = cursor.next();
+                    String key = new String(keyBytes, StandardCharsets.UTF_8);
+                    DataType type = connection.keyCommands().type(keyBytes);
+                    long size = getSizeByType(connection, keyBytes, type);
+                    entries.add(new KeySizeEntry(key, type.name(), size));
+                    scanned++;
+                }
+            }
+
+            entries.sort((a, b) -> Long.compare(b.size, a.size));
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("=== Redis 大 Key 扫描 ===\n\n");
+            sb.append("共扫描 ").append(scanned).append(" 个 key\n\n");
+            sb.append("| # | Key (截断) | 类型 | 大小 |\n");
+            sb.append("|---|-----------|------|------|\n");
+
+            int show = Math.min(20, entries.size());
+            for (int i = 0; i < show; i++) {
+                KeySizeEntry e = entries.get(i);
+                String disp = e.key.length() > 38 ? e.key.substring(0, 35) + "..." : e.key;
+                String sizeStr = switch (e.type) {
+                    case "STRING" -> formatBytes(e.size);
+                    default -> String.valueOf(e.size) + " 个元素";
+                };
+                sb.append(String.format("| %d | %s | %s | %s |\n",
+                        i + 1, disp, e.type, sizeStr));
+            }
+
+            long largeCount = entries.stream()
+                    .filter(e -> "STRING".equals(e.type) && e.size > 1024 * 1024).count();
+            if (largeCount > 0) {
+                sb.append("\n⚠️ 超过 1MB 的大 String Key: ").append(largeCount).append(" 个\n");
+            }
+            return sb.toString();
+        });
+    }
+
+    private static long getSizeByType(
+            org.springframework.data.redis.connection.RedisConnection conn,
+            byte[] key, DataType type) {
+        try {
+            return switch (type) {
+                case STRING -> {
+                    Long len = conn.stringCommands().strLen(key);
+                    yield len != null ? len : 0;
+                }
+                case HASH -> {
+                    Long len = conn.hashCommands().hLen(key);
+                    yield len != null ? len : 0;
+                }
+                case LIST -> {
+                    Long len = conn.listCommands().lLen(key);
+                    yield len != null ? len : 0;
+                }
+                case SET -> {
+                    Long len = conn.setCommands().sCard(key);
+                    yield len != null ? len : 0;
+                }
+                case ZSET -> {
+                    Long len = conn.zSetCommands().zCard(key);
+                    yield len != null ? len : 0;
+                }
+                default -> 0;
+            };
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private record KeySizeEntry(String key, String type, long size) {}
+
+    private static String formatBytes(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024L * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024L * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
+        if (bytes < 1024L * 1024 * 1024 * 1024) return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
+        return String.format("%.2f TB", bytes / (1024.0 * 1024 * 1024 * 1024));
     }
 
     private long parseLong(Properties props, String key) {

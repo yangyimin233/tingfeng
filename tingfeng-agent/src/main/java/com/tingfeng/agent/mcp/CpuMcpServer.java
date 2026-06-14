@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.io.File;
+import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.lang.management.MemoryMXBean;
 import java.lang.management.MemoryUsage;
@@ -97,6 +99,18 @@ public class CpuMcpServer {
                 + "包括操作系统名称/版本、Java 版本、JVM 启动时长。",
                 emptySchema());
 
+        addTool(tools, "gc_stats",
+                "获取 JVM 垃圾回收统计信息。"
+                + "包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。"
+                + "GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+                emptySchema());
+
+        addTool(tools, "disk_usage",
+                "获取磁盘空间使用情况，列出所有分区(盘符)。"
+                + "包括总空间、已用、剩余空间及使用率。"
+                + "用于排查'磁盘满导致写失败'类问题。",
+                emptySchema());
+
         ObjectNode result = MAPPER.createObjectNode();
         result.set("tools", tools);
         send(requestId, result);
@@ -126,6 +140,8 @@ public class CpuMcpServer {
                 case "java_memory" -> getJavaMemory();
                 case "java_threads" -> getJavaThreads();
                 case "system_info" -> getSystemInfo();
+                case "gc_stats" -> getGcStats();
+                case "disk_usage" -> getDiskUsage();
                 default -> { sendError(requestId, -32602, "Unknown tool: " + toolName); yield null; }
             };
             if (text == null) return;
@@ -261,6 +277,84 @@ public class CpuMcpServer {
         long minutes = (uptimeMs % (3600 * 1000)) / (60 * 1000);
         sb.append(String.format("  JVM 启动时长: %d 天 %d 小时 %d 分钟\n", days, hours, minutes));
         return sb.toString();
+    }
+
+    private static String getGcStats() {
+        StringBuilder sb = new StringBuilder("=== JVM GC 统计 ===\n\n");
+        java.util.List<GarbageCollectorMXBean> gcBeans =
+                ManagementFactory.getGarbageCollectorMXBeans();
+
+        long totalCollections = 0;
+        long totalTime = 0;
+        for (GarbageCollectorMXBean gc : gcBeans) {
+            long count = gc.getCollectionCount();
+            long time = gc.getCollectionTime();
+            sb.append("[").append(gc.getName()).append("]\n");
+            sb.append("  回收次数: ").append(count).append("\n");
+            sb.append("  累计耗时: ").append(time).append(" ms\n");
+            if (count > 0) {
+                sb.append(String.format("  平均耗时: %.1f ms\n", (double) time / count));
+            }
+            totalCollections += count;
+            totalTime += time;
+        }
+
+        long uptimeMs = ManagementFactory.getRuntimeMXBean().getUptime();
+        if (uptimeMs > 0 && totalCollections > 0) {
+            double gcFreq = (double) totalCollections / (uptimeMs / 1000.0);
+            double gcPct = (double) totalTime / uptimeMs * 100;
+            sb.append(String.format("\n[汇总]\n  GC 总次数: %d\n  GC 总耗时: %d ms\n  GC 频率: %.3f 次/秒\n  GC 时间占比: %.2f%%\n",
+                    totalCollections, totalTime, gcFreq, gcPct));
+            if (gcPct > 10) {
+                sb.append("  ⚠️ GC 耗时占比过高, 可能存在内存泄漏或 GC 配置不当\n");
+            } else if (gcPct > 5) {
+                sb.append("    偏高, 需关注 GC 压力趋势\n");
+            } else {
+                sb.append("  ✅ 正常\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String getDiskUsage() {
+        StringBuilder sb = new StringBuilder("=== 磁盘空间诊断 ===\n\n");
+        File[] roots = File.listRoots();
+        sb.append(String.format("| 分区 | 文件系统 | 总空间 | 已用 | 剩余 | 使用率 |\n"));
+        sb.append("|------|----------|--------|------|------|--------|\n");
+
+        for (File root : roots) {
+            try {
+                long total = root.getTotalSpace();
+                long free = root.getFreeSpace();
+                long usable = root.getUsableSpace();
+                long used = total - free;
+                double usagePct = total > 0 ? (double) used / total * 100 : 0;
+
+                sb.append(String.format("| %s | %s | %s | %s | %s | %.1f%% |\n",
+                        root.getPath(),
+                        "local",
+                        formatBytes(total),
+                        formatBytes(used),
+                        formatBytes(usable),
+                        usagePct));
+
+                if (usagePct > 90) {
+                    sb.append("  ⚠️ ").append(root.getPath())
+                            .append(" 磁盘使用率超过 90%, 建议清理\n");
+                }
+            } catch (Exception e) {
+                sb.append("| ").append(root.getPath()).append(" | 无法读取 | - | - | - | - |\n");
+            }
+        }
+        return sb.toString();
+    }
+
+    private static String formatBytes(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024L * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024L * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
+        if (bytes < 1024L * 1024 * 1024 * 1024) return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
+        return String.format("%.2f TB", bytes / (1024.0 * 1024 * 1024 * 1024));
     }
 
     // ── JSON-RPC 发送 ──

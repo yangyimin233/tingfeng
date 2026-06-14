@@ -76,6 +76,13 @@
             <artifactId>mysql-connector-j</artifactId>
         </dependency>
 
+        <!-- Jedis —— Redis MCP Server 子进程直连 Redis -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>5.1.0</version>
+        </dependency>
+
         <!-- JDBC —— 探针快照持久化专用 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

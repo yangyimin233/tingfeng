@@ -1,5 +1,6 @@
 package com.tingfeng.agent.controller;
 
+import com.tingfeng.agent.persist.JvmMetricsRepository;
 import com.tingfeng.agent.persist.SnapshotRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,9 +34,12 @@ public class ReportController {
             });
 
     private final SnapshotRepository repository;
+    private final JvmMetricsRepository jvmRepository;
 
-    public ReportController(Optional<SnapshotRepository> repository) {
+    public ReportController(Optional<SnapshotRepository> repository,
+                            Optional<JvmMetricsRepository> jvmRepository) {
         this.repository = repository.orElse(null);
+        this.jvmRepository = jvmRepository.orElse(null);
     }
 
     @PostMapping("/report")
@@ -45,6 +49,15 @@ public class ReportController {
         snapshots.add(snapshot);
         if (repository != null) {
             repository.save(snapshot);
+        }
+    }
+
+    @PostMapping("/jvm-metrics")
+    public void receiveJvmMetrics(@RequestBody LinkedHashMap<String, Object> metrics) {
+        log.info("Received JVM metrics: cpu={}%, heap={}MB, threads={}",
+                metrics.get("cpuProcess"), metrics.get("heapUsedMb"), metrics.get("threadCount"));
+        if (jvmRepository != null) {
+            jvmRepository.save(metrics);
         }
     }
 

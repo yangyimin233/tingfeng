@@ -1,5 +1,6 @@
 package com.tingfeng.agent.config;
 
+import com.tingfeng.agent.persist.JvmMetricsRepository;
 import com.tingfeng.agent.persist.SnapshotRepository;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -30,5 +31,11 @@ public class PersistenceConfig {
     @ConditionalOnProperty(prefix = "tingfeng.persistence", name = "url")
     public SnapshotRepository snapshotRepository(DataSource persistenceDataSource) {
         return new SnapshotRepository(persistenceDataSource);
+    }
+
+    @Bean
+    @ConditionalOnProperty(prefix = "tingfeng.persistence", name = "url")
+    public JvmMetricsRepository jvmMetricsRepository(DataSource persistenceDataSource) {
+        return new JvmMetricsRepository(persistenceDataSource);
     }
 }

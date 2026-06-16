@@ -1,6 +1,7 @@
 package com.tingfeng.starter.config;
 
 import com.tingfeng.starter.aop.TingFengMonitorAspect;
+import com.tingfeng.starter.collect.JvmMetricsCollector;
 import com.tingfeng.starter.report.TingFengReportClient;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -23,5 +24,15 @@ public class TingFengAutoConfiguration {
     @ConditionalOnMissingBean
     public TingFengMonitorAspect tingFengMonitorAspect(TingFengReportClient reportClient) {
         return new TingFengMonitorAspect(reportClient);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnProperty(prefix = "tingfeng.agent", name = "jvm-collect-enabled", havingValue = "true", matchIfMissing = true)
+    public JvmMetricsCollector jvmMetricsCollector(TingFengReportClient reportClient,
+                                                    TingFengProperties properties) {
+        JvmMetricsCollector collector = new JvmMetricsCollector(reportClient, properties);
+        collector.start();
+        return collector;
     }
 }

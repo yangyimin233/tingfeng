@@ -110,7 +110,10 @@ public class ToolRegistryManager {
                        "REDIS_PASSWORD", redisPassword != null ? redisPassword : "",
                        "REDIS_DATABASE", String.valueOf(redisDatabase)));
 
-        registerBuiltinClient("cpu-mcp", "com.tingfeng.agent.mcp.CpuMcpServer", Map.of());
+        registerBuiltinClient("cpu-mcp", "com.tingfeng.agent.mcp.CpuMcpServer",
+                Map.of("PERSISTENCE_URL", persistProps.getUrl() != null ? persistProps.getUrl() : "",
+                       "PERSISTENCE_USER", persistProps.getUsername(),
+                       "PERSISTENCE_PASS", persistProps.getPassword()));
 
         if (persistProps.isConfigured()) {
             registerBuiltinClient("snapshot-mcp", "com.tingfeng.agent.mcp.SnapshotMcpServer",

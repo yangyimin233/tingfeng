@@ -8,15 +8,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.File;
-import java.lang.management.GarbageCollectorMXBean;
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryMXBean;
-import java.lang.management.MemoryUsage;
-import java.lang.management.RuntimeMXBean;
-import java.lang.management.ThreadInfo;
-import java.lang.management.ThreadMXBean;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.Statement;
+import java.util.Map;
 
 /**
  * 最小化 Java MCP stdio Server，提供本地主机 CPU/内存/线程诊断工具。
@@ -159,160 +157,124 @@ public class CpuMcpServer {
 
     // ── 诊断方法 ──
 
+    // ── DB 查询辅助 ──
+
+    private static Map<String, Object> queryLatest() {
+        try (Connection conn = getPersistenceConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "SELECT * FROM tingfeng_jvm_metrics ORDER BY timestamp DESC LIMIT 1")) {
+            if (rs.next()) {
+                Map<String, Object> row = new java.util.LinkedHashMap<>();
+                ResultSetMetaData meta = rs.getMetaData();
+                for (int i = 1; i <= meta.getColumnCount(); i++) {
+                    row.put(meta.getColumnName(i), rs.getObject(i));
+                }
+                return row;
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private static String fmt(Object v) { return v != null ? v.toString() : "N/A"; }
+
+    // ── 工具实现: DB 查询宿主 JVM 的历史指标 ──
+
     private static String getCpuInfo() {
-        StringBuilder sb = new StringBuilder("=== CPU 诊断 ===\n\n");
-        com.sun.management.OperatingSystemMXBean os =
-                (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        Map<String, Object> row = queryLatest();
+        if (row == null) return "=== CPU 诊断 ===\n\n暂无宿主 JVM 数据，请确保 tingfeng-starter 已接入。";
 
-        double systemLoad = os.getCpuLoad() * 100;
-        double processLoad = os.getProcessCpuLoad() * 100;
-        int processors = os.getAvailableProcessors();
+        StringBuilder sb = new StringBuilder("=== CPU 诊断（宿主 JVM 最近一次采集）===\n\n");
+        sb.append(String.format("  系统 CPU 使用率: %.1f%%\n", toDouble(row, "cpu_system")));
+        sb.append(String.format("  JVM 进程 CPU 使用率: %.1f%%\n", toDouble(row, "cpu_process")));
+        sb.append(String.format("  可用处理器核心数: %s\n", fmt(row.get("processors"))));
 
-        sb.append(String.format("  系统 CPU 使用率: %.1f%%\n", systemLoad));
-        sb.append(String.format("  JVM 进程 CPU 使用率: %.1f%%\n", processLoad));
-        sb.append(String.format("  可用处理器核心数: %d\n", processors));
-
+        double sys = toDouble(row, "cpu_system");
         String status;
-        if (systemLoad > 90) status = "⚠️ 系统 CPU 接近饱和, 建议排查高 CPU 线程或扩容";
-        else if (systemLoad > 70) status = "  偏高, 需关注趋势";
+        if (sys > 90) status = "⚠️ 系统 CPU 接近饱和";
+        else if (sys > 70) status = "  偏高, 需关注趋势";
         else status = "✅ 正常";
         sb.append("\n  状态: ").append(status);
+        sb.append("\n  采集时间: ").append(fmt(row.get("timestamp")));
         return sb.toString();
     }
 
     private static String getJavaMemory() {
-        StringBuilder sb = new StringBuilder("=== JVM 内存诊断 ===\n\n");
-        Runtime runtime = Runtime.getRuntime();
-        MemoryMXBean memBean = ManagementFactory.getMemoryMXBean();
-        MemoryUsage heap = memBean.getHeapMemoryUsage();
-        MemoryUsage nonHeap = memBean.getNonHeapMemoryUsage();
+        Map<String, Object> row = queryLatest();
+        if (row == null) return "=== JVM 内存诊断 ===\n\n暂无宿主 JVM 数据。";
 
-        long heapUsedMB = heap.getUsed() / (1024 * 1024);
-        long heapMaxMB = heap.getMax() / (1024 * 1024);
-        long nonHeapUsedMB = nonHeap.getUsed() / (1024 * 1024);
-        long totalMB = runtime.totalMemory() / (1024 * 1024);
-        long freeMB = runtime.freeMemory() / (1024 * 1024);
+        StringBuilder sb = new StringBuilder("=== JVM 内存诊断（宿主 JVM 最近一次采集）===\n\n");
+        sb.append(String.format("  堆内存已用: %s MB / 最大 %s MB\n",
+                fmt(row.get("heap_used_mb")), fmt(row.get("heap_max_mb"))));
+        sb.append(String.format("  非堆内存已用: %s MB\n", fmt(row.get("non_heap_used_mb"))));
+        sb.append(String.format("  系统空闲内存: %s MB / 总 %s MB\n",
+                fmt(row.get("sys_free_mb")), fmt(row.get("sys_total_mb"))));
 
-        sb.append(String.format("  堆内存已用: %d MB / 最大 %d MB\n", heapUsedMB, heapMaxMB));
-        sb.append(String.format("  堆内存已分配: %d MB, 空闲: %d MB\n", totalMB, freeMB));
-        sb.append(String.format("  非堆内存已用: %d MB\n", nonHeapUsedMB));
-
-        long total = runtime.totalMemory();
-        long max = runtime.maxMemory();
-        double usage = (double) total / max * 100;
+        double usage = toDouble(row, "heap_used_mb") / Math.max(toDouble(row, "heap_max_mb"), 1) * 100;
         sb.append(String.format("  堆内存使用率: %.1f%%\n", usage));
 
-        com.sun.management.OperatingSystemMXBean os =
-                (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
-        long sysFreeMB = os.getFreeMemorySize() / (1024 * 1024);
-        long sysTotalMB = os.getTotalMemorySize() / (1024 * 1024);
-        sb.append(String.format("  系统空闲内存: %d MB / 总 %d MB\n", sysFreeMB, sysTotalMB));
-
+        double sysFreeRatio = toDouble(row, "sys_free_mb") / Math.max(toDouble(row, "sys_total_mb"), 1);
         String status;
-        if (usage > 85) status = "⚠️ 堆内存使用率过高, 可能存在内存泄漏";
-        else if (sysFreeMB * 1.0 / sysTotalMB < 0.1) status = "⚠️ 系统内存不足";
+        if (usage > 85) status = "⚠️ 堆内存使用率过高";
+        else if (sysFreeRatio < 0.1) status = "⚠️ 系统内存不足";
         else status = "✅ 正常";
         sb.append("\n  状态: ").append(status);
+        sb.append("\n  采集时间: ").append(fmt(row.get("timestamp")));
         return sb.toString();
     }
 
     private static String getJavaThreads() {
-        StringBuilder sb = new StringBuilder("=== JVM 线程诊断 ===\n\n");
-        ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+        Map<String, Object> row = queryLatest();
+        if (row == null) return "=== JVM 线程诊断 ===\n\n暂无宿主 JVM 数据。";
 
-        int threadCount = threadBean.getThreadCount();
-        int peakCount = threadBean.getPeakThreadCount();
-        int daemonCount = threadBean.getDaemonThreadCount();
-        long totalStarted = threadBean.getTotalStartedThreadCount();
+        StringBuilder sb = new StringBuilder("=== JVM 线程诊断（宿主 JVM 最近一次采集）===\n\n");
+        sb.append(String.format("  当前线程数: %s\n", fmt(row.get("thread_count"))));
+        sb.append(String.format("  峰值线程数: %s\n", fmt(row.get("thread_peak"))));
+        sb.append(String.format("  守护线程数: %s\n", fmt(row.get("daemon_threads"))));
 
-        sb.append(String.format("  当前线程数: %d\n", threadCount));
-        sb.append(String.format("  峰值线程数: %d\n", peakCount));
-        sb.append(String.format("  守护线程数: %d\n", daemonCount));
-        sb.append(String.format("  累计启动线程: %d\n", totalStarted));
-        sb.append(String.format("  死锁检测: "));
+        int deadlocked = toInt(row, "deadlocked");
+        sb.append(String.format("  死锁线程数: %d\n", deadlocked));
+        if (deadlocked > 0) sb.append("  ⚠️ 存在死锁!\n");
+        else sb.append("  ✅ 无死锁\n");
 
-        long[] deadlockedThreads = threadBean.findDeadlockedThreads();
-        if (deadlockedThreads != null && deadlockedThreads.length > 0) {
-            sb.append("⚠️ 发现死锁线程!\n");
-            ThreadInfo[] infos = threadBean.getThreadInfo(deadlockedThreads);
-            for (ThreadInfo info : infos) {
-                sb.append(String.format("    死锁线程: %s (id=%d)\n",
-                        info.getThreadName(), info.getThreadId()));
-                sb.append("    堆栈:\n");
-                for (StackTraceElement ste : info.getStackTrace()) {
-                    sb.append("      ").append(ste).append("\n");
-                }
-            }
-        } else {
-            sb.append("✅ 无死锁\n");
+        sb.append("\n  采集时间: ").append(fmt(row.get("timestamp")));
+        return sb.toString();
+    }
+
+    private static String getGcStats() {
+        Map<String, Object> row = queryLatest();
+        if (row == null) return "=== JVM GC 统计 ===\n\n暂无宿主 JVM 数据。";
+
+        StringBuilder sb = new StringBuilder("=== JVM GC 统计（宿主 JVM 最近一次采集）===\n\n");
+        long youngCount = toLong(row, "gc_young_count");
+        long youngTime = toLong(row, "gc_young_time_ms");
+        long oldCount = toLong(row, "gc_old_count");
+        long oldTime = toLong(row, "gc_old_time_ms");
+
+        sb.append(String.format("[Young GC]\n  回收次数: %d\n  累计耗时: %d ms\n", youngCount, youngTime));
+        sb.append(String.format("[Old/Full GC]\n  回收次数: %d\n  累计耗时: %d ms\n", oldCount, oldTime));
+
+        long totalTime = youngTime + oldTime;
+        long totalCount = youngCount + oldCount;
+        if (totalCount > 0) {
+            double gcPct = totalTime > 0 ? 100.0 : 0;
+            sb.append(String.format("\n[汇总]\n  GC 总次数: %d\n  GC 总耗时: %d ms\n",
+                    totalCount, totalTime));
+            if (gcPct > 10) sb.append("  ⚠️ GC 耗时占比过高\n");
+            else sb.append("  ✅ 正常\n");
         }
 
-        String status;
-        if (deadlockedThreads != null && deadlockedThreads.length > 0) {
-            status = "⚠️ 存在死锁";
-        } else if (threadCount >= 100 && threadCount > peakCount * 0.9) {
-            status = "⚠️ 偏高 (接近历史峰值)";
-        } else if (threadCount >= 50 && threadCount > peakCount * 0.85) {
-            status = "  偏高, 需关注趋势";
-        } else {
-            status = "✅ 正常";
-        }
-        sb.append("\n  状态: ").append(status);
+        sb.append("\n  采集时间: ").append(fmt(row.get("timestamp")));
         return sb.toString();
     }
 
     private static String getSystemInfo() {
         StringBuilder sb = new StringBuilder("=== 系统信息 ===\n\n");
-        RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
-
         sb.append("  操作系统: ").append(System.getProperty("os.name"))
                 .append(" ").append(System.getProperty("os.version")).append("\n");
         sb.append("  系统架构: ").append(System.getProperty("os.arch")).append("\n");
         sb.append("  Java 版本: ").append(System.getProperty("java.version")).append("\n");
         sb.append("  Java 厂商: ").append(System.getProperty("java.vendor")).append("\n");
-
-        long uptimeMs = runtimeBean.getUptime();
-        long days = uptimeMs / (24 * 3600 * 1000);
-        long hours = (uptimeMs % (24 * 3600 * 1000)) / (3600 * 1000);
-        long minutes = (uptimeMs % (3600 * 1000)) / (60 * 1000);
-        sb.append(String.format("  JVM 启动时长: %d 天 %d 小时 %d 分钟\n", days, hours, minutes));
-        return sb.toString();
-    }
-
-    private static String getGcStats() {
-        StringBuilder sb = new StringBuilder("=== JVM GC 统计 ===\n\n");
-        java.util.List<GarbageCollectorMXBean> gcBeans =
-                ManagementFactory.getGarbageCollectorMXBeans();
-
-        long totalCollections = 0;
-        long totalTime = 0;
-        for (GarbageCollectorMXBean gc : gcBeans) {
-            long count = gc.getCollectionCount();
-            long time = gc.getCollectionTime();
-            sb.append("[").append(gc.getName()).append("]\n");
-            sb.append("  回收次数: ").append(count).append("\n");
-            sb.append("  累计耗时: ").append(time).append(" ms\n");
-            if (count > 0) {
-                sb.append(String.format("  平均耗时: %.1f ms\n", (double) time / count));
-            }
-            totalCollections += count;
-            totalTime += time;
-        }
-
-        long uptimeMs = ManagementFactory.getRuntimeMXBean().getUptime();
-        if (uptimeMs > 0 && totalCollections > 0) {
-            double gcFreq = (double) totalCollections / (uptimeMs / 1000.0);
-            double gcPct = (double) totalTime / uptimeMs * 100;
-            sb.append(String.format("\n[汇总]\n  GC 总次数: %d\n  GC 总耗时: %d ms\n  GC 频率: %.3f 次/秒\n  GC 时间占比: %.2f%%\n",
-                    totalCollections, totalTime, gcFreq, gcPct));
-            if (gcPct > 10) {
-                sb.append("  ⚠️ GC 耗时占比过高, 可能存在内存泄漏或 GC 配置不当\n");
-            } else if (gcPct > 5) {
-                sb.append("    偏高, 需关注 GC 压力趋势\n");
-            } else {
-                sb.append("  ✅ 正常\n");
-            }
-        }
         return sb.toString();
     }
 
@@ -357,6 +319,34 @@ public class CpuMcpServer {
         return String.format("%.2f TB", bytes / (1024.0 * 1024 * 1024 * 1024));
     }
 
+    // ── 辅助 ──
+
+    private static double toDouble(Map<String, Object> row, String key) {
+        Object v = row.get(key);
+        if (v instanceof Number n) return n.doubleValue();
+        return 0;
+    }
+
+    private static int toInt(Map<String, Object> row, String key) {
+        Object v = row.get(key);
+        if (v instanceof Number n) return n.intValue();
+        return 0;
+    }
+
+    private static long toLong(Map<String, Object> row, String key) {
+        Object v = row.get(key);
+        if (v instanceof Number n) return n.longValue();
+        return 0;
+    }
+
+    private static Connection getPersistenceConnection() throws Exception {
+        String url = env("PERSISTENCE_URL", null);
+        if (url == null || url.isBlank()) throw new IllegalStateException("PERSISTENCE_URL 未配置");
+        String user = env("PERSISTENCE_USER", "root");
+        String pass = env("PERSISTENCE_PASS", "123456");
+        return DriverManager.getConnection(url, user, pass);
+    }
+
     // ── JSON-RPC 发送 ──
 
     private static void send(Object requestId, ObjectNode result) {
@@ -377,5 +367,10 @@ public class CpuMcpServer {
         error.put("message", message);
         System.out.println(response.toString());
         System.out.flush();
+    }
+
+    private static String env(String key, String defaultVal) {
+        String val = System.getenv(key);
+        return (val != null && !val.isBlank()) ? val : defaultVal;
     }
 }

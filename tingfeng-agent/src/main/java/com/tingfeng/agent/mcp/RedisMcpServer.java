@@ -13,7 +13,8 @@ import redis.clients.jedis.resps.ScanResult;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -138,6 +139,7 @@ public class RedisMcpServer {
     private static void sendToolCallResult(Object requestId, JsonNode params) {
         String toolName = params.path("name").asText();
         JsonNode args = params.path("arguments");
+        long start = System.currentTimeMillis();
         try {
             String text = switch (toolName) {
                 case "redis_metrics" -> getMetrics();
@@ -147,6 +149,8 @@ public class RedisMcpServer {
             };
             if (text == null) return;
 
+            logToolCall(toolName, args.toString(), text, (int)(System.currentTimeMillis() - start), true, null);
+
             ObjectNode result = MAPPER.createObjectNode();
             ArrayNode content = result.putArray("content");
             ObjectNode textBlock = content.addObject();
@@ -154,6 +158,7 @@ public class RedisMcpServer {
             textBlock.put("text", text);
             send(requestId, result);
         } catch (Exception e) {
+            logToolCall(toolName, args.toString(), null, (int)(System.currentTimeMillis() - start), false, e.getMessage());
             sendError(requestId, -32000, "Tool execution error: " + e.getMessage());
         }
     }
@@ -339,7 +344,7 @@ public class RedisMcpServer {
                     int port = Integer.parseInt(env("REDIS_PORT", "6379"));
                     String password = env("REDIS_PASSWORD", "");
                     int db = Integer.parseInt(env("REDIS_DATABASE", "0"));
-                    int timeout = 5000;
+                    int timeout = 3000;
                     if (password.isEmpty()) {
                         pool = new JedisPool(config, host, port, timeout);
                     } else {
@@ -370,6 +375,32 @@ public class RedisMcpServer {
         if (bytes < 1024L * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
         if (bytes < 1024L * 1024 * 1024 * 1024) return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
         return String.format("%.2f TB", bytes / (1024.0 * 1024 * 1024 * 1024));
+    }
+
+    // ── 工具调用日志 ──
+
+    private static void logToolCall(String toolName, String args, String result,
+                                     int durationMs, boolean success, String errorMsg) {
+        String url = env("PERSISTENCE_URL", null);
+        if (url == null || url.isBlank()) return;
+        try (Connection conn = DriverManager.getConnection(
+                     url.contains("?") ? url + "&connectTimeout=1000&socketTimeout=1000"
+                                       : url + "?connectTimeout=1000&socketTimeout=1000",
+                     env("PERSISTENCE_USER", "root"), env("PERSISTENCE_PASS", "123456"));
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(
+                     "INSERT INTO tingfeng_tool_call_log" +
+                     " (tool_name, arguments, result_summary, duration_ms, success, error_msg, call_time)" +
+                     " VALUES (?,?,?,?,?,?,?)")) {
+            pstmt.setQueryTimeout(1);
+            pstmt.setString(1, toolName);
+            pstmt.setString(2, args != null && args.length() > 5000 ? args.substring(0, 5000) : args);
+            pstmt.setString(3, result != null && result.length() > 500 ? result.substring(0, 500) : result);
+            pstmt.setInt(4, durationMs);
+            pstmt.setInt(5, success ? 1 : 0);
+            pstmt.setString(6, errorMsg);
+            pstmt.setLong(7, System.currentTimeMillis());
+            pstmt.executeUpdate();
+        } catch (Exception ignored) {}
     }
 
     // ── JSON-RPC 发送 ──

@@ -116,9 +116,22 @@ public class JvmMetricsRepository {
     private void ensureTable() {
         try {
             jdbc.execute(DDL);
-            log.info("JVM 指标表 tingfeng_jvm_metrics 已就绪");
+            jdbc.execute("CREATE TABLE IF NOT EXISTS tingfeng_tool_call_log (" +
+                    "  id            BIGINT AUTO_INCREMENT PRIMARY KEY," +
+                    "  tool_name     VARCHAR(100) NOT NULL," +
+                    "  arguments     MEDIUMTEXT," +
+                    "  result_summary VARCHAR(500)," +
+                    "  duration_ms   INT," +
+                    "  success       TINYINT(1) NOT NULL," +
+                    "  error_msg     TEXT," +
+                    "  call_time     BIGINT NOT NULL," +
+                    "  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                    "  INDEX idx_tool (tool_name)," +
+                    "  INDEX idx_call_time (call_time)" +
+                    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            log.info("JVM 指标表 + 工具调用日志表 已就绪");
         } catch (Exception e) {
-            log.warn("JVM 指标建表失败: {}", e.getMessage());
+            log.warn("建表失败: {}", e.getMessage());
         }
     }
 

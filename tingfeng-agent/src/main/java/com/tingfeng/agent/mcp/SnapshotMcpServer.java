@@ -95,8 +95,10 @@ public class SnapshotMcpServer {
     private static void sendToolCall(Object id, JsonNode params) {
         String toolName = params.path("name").asText();
         JsonNode args = params.path("arguments");
+        long start = System.currentTimeMillis();
         try {
             String text = toolName.equals("query_snapshots") ? doQuerySnapshots(args) : "Unknown tool: " + toolName;
+            logToolCall(toolName, args.toString(), text, (int)(System.currentTimeMillis() - start), true, null);
             ObjectNode result = MAPPER.createObjectNode();
             ArrayNode content = result.putArray("content");
             ObjectNode block = content.addObject();
@@ -104,6 +106,7 @@ public class SnapshotMcpServer {
             block.put("text", text);
             send(id, result);
         } catch (Exception e) {
+            logToolCall(toolName, args.toString(), null, (int)(System.currentTimeMillis() - start), false, e.getMessage());
             sendError(id, -32000, e.getMessage());
         }
     }
@@ -217,7 +220,7 @@ public class SnapshotMcpServer {
     private static String queryToJson(String sql, Object... params) throws Exception {
         try (Connection conn = getPersistenceConnection();
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
-
+            pstmt.setQueryTimeout(3);
             for (int i = 0; i < params.length; i++) {
                 pstmt.setObject(i + 1, params[i]);
             }
@@ -251,7 +254,8 @@ public class SnapshotMcpServer {
         if (url == null || url.isBlank()) throw new IllegalStateException("PERSISTENCE_URL 未配置");
         String user = env("PERSISTENCE_USER", "root");
         String pass = env("PERSISTENCE_PASS", "123456");
-        return DriverManager.getConnection(url, user, pass);
+        String sep = url.contains("?") ? "&" : "?";
+        return DriverManager.getConnection(url + sep + "connectTimeout=3000&socketTimeout=3000", user, pass);
     }
 
     private static long unixMinus(int minutes) {
@@ -278,6 +282,30 @@ public class SnapshotMcpServer {
         err.put("message", msg);
         System.out.println(resp);
         System.out.flush();
+    }
+
+    private static void logToolCall(String toolName, String args, String result,
+                                     int durationMs, boolean success, String errorMsg) {
+        String url = env("PERSISTENCE_URL", null);
+        if (url == null || url.isBlank()) return;
+        try (Connection conn = DriverManager.getConnection(
+                     url.contains("?") ? url + "&connectTimeout=1000&socketTimeout=1000"
+                                       : url + "?connectTimeout=1000&socketTimeout=1000",
+                     env("PERSISTENCE_USER", "root"), env("PERSISTENCE_PASS", "123456"));
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(
+                     "INSERT INTO tingfeng_tool_call_log" +
+                     " (tool_name, arguments, result_summary, duration_ms, success, error_msg, call_time)" +
+                     " VALUES (?,?,?,?,?,?,?)")) {
+            pstmt.setQueryTimeout(1);
+            pstmt.setString(1, toolName);
+            pstmt.setString(2, args != null && args.length() > 5000 ? args.substring(0, 5000) : args);
+            pstmt.setString(3, result != null && result.length() > 500 ? result.substring(0, 500) : result);
+            pstmt.setInt(4, durationMs);
+            pstmt.setInt(5, success ? 1 : 0);
+            pstmt.setString(6, errorMsg);
+            pstmt.setLong(7, System.currentTimeMillis());
+            pstmt.executeUpdate();
+        } catch (Exception ignored) {}
     }
 
     private static String env(String key, String defaultVal) {

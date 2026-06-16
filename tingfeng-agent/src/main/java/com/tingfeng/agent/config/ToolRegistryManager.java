@@ -97,35 +97,44 @@ public class ToolRegistryManager {
 
     @PostConstruct
     public void init() {
-        registerBuiltinClient("mysql-mcp", "com.tingfeng.agent.mcp.MySqlMcpServer",
+        // persistence env (共享给所有 MCP 子进程做工具调用日志)
+        Map<String, String> persistEnv = persistProps.isConfigured()
+                ? Map.of("PERSISTENCE_URL", persistProps.getUrl(),
+                         "PERSISTENCE_USER", persistProps.getUsername(),
+                         "PERSISTENCE_PASS", persistProps.getPassword())
+                : null;
+
+        registerBuiltinClient("mysql-mcp", "com.tingfeng.agent.mcp.MySqlMcpServer", mergeEnv(
                 Map.of("MYSQL_HOST", props.getMysql().getHost(),
                        "MYSQL_PORT", String.valueOf(props.getMysql().getPort()),
                        "MYSQL_USER", props.getMysql().getUser(),
                        "MYSQL_PASS", props.getMysql().getPass(),
-                       "MYSQL_DB", props.getMysql().getDb()));
+                       "MYSQL_DB", props.getMysql().getDb()), persistEnv));
 
-        registerBuiltinClient("redis-mcp", "com.tingfeng.agent.mcp.RedisMcpServer",
+        registerBuiltinClient("redis-mcp", "com.tingfeng.agent.mcp.RedisMcpServer", mergeEnv(
                 Map.of("REDIS_HOST", redisHost,
                        "REDIS_PORT", String.valueOf(redisPort),
                        "REDIS_PASSWORD", redisPassword != null ? redisPassword : "",
-                       "REDIS_DATABASE", String.valueOf(redisDatabase)));
+                       "REDIS_DATABASE", String.valueOf(redisDatabase)), persistEnv));
 
-        registerBuiltinClient("cpu-mcp", "com.tingfeng.agent.mcp.CpuMcpServer",
-                Map.of("PERSISTENCE_URL", persistProps.getUrl() != null ? persistProps.getUrl() : "",
-                       "PERSISTENCE_USER", persistProps.getUsername(),
-                       "PERSISTENCE_PASS", persistProps.getPassword()));
+        registerBuiltinClient("cpu-mcp", "com.tingfeng.agent.mcp.CpuMcpServer", persistEnv != null
+                ? persistEnv : Map.of());
 
         if (persistProps.isConfigured()) {
-            registerBuiltinClient("snapshot-mcp", "com.tingfeng.agent.mcp.SnapshotMcpServer",
-                    Map.of("PERSISTENCE_URL", persistProps.getUrl(),
-                           "PERSISTENCE_USER", persistProps.getUsername(),
-                           "PERSISTENCE_PASS", persistProps.getPassword()));
+            registerBuiltinClient("snapshot-mcp", "com.tingfeng.agent.mcp.SnapshotMcpServer", persistEnv);
         }
 
         rebuildAll();
         rebuildPlanner();
         log.info("ToolRegistryManager 初始化完成: clients={}, activeTags={}",
                 clients.size(), activeTags());
+    }
+
+    private Map<String, String> mergeEnv(Map<String, String> primary, Map<String, String> secondary) {
+        if (secondary == null || secondary.isEmpty()) return primary;
+        Map<String, String> merged = new java.util.LinkedHashMap<>(primary);
+        merged.putAll(secondary);
+        return merged;
     }
 
     private void registerBuiltinClient(String name, String mainClass, Map<String, String> env) {

@@ -129,7 +129,19 @@ public class JvmMetricsRepository {
                     "  INDEX idx_tool (tool_name)," +
                     "  INDEX idx_call_time (call_time)" +
                     ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-            log.info("JVM 指标表 + 工具调用日志表 已就绪");
+            jdbc.execute("CREATE TABLE IF NOT EXISTS tingfeng_execution_log (" +
+                    "  id            BIGINT AUTO_INCREMENT PRIMARY KEY," +
+                    "  action_id     VARCHAR(100)," +
+                    "  tool_name     VARCHAR(100) NOT NULL," +
+                    "  args          MEDIUMTEXT," +
+                    "  result        TEXT," +
+                    "  success       TINYINT(1) NOT NULL," +
+                    "  executed_at   BIGINT NOT NULL," +
+                    "  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                    "  INDEX idx_exec_time (executed_at)," +
+                    "  INDEX idx_tool (tool_name)" +
+                    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            log.info("JVM 指标表 + 工具调用日志表 + 执行审计表 已就绪");
         } catch (Exception e) {
             log.warn("建表失败: {}", e.getMessage());
         }

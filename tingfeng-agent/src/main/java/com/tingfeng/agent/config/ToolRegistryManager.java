@@ -11,7 +11,6 @@ import dev.langchain4j.service.AiServices;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.Closeable;
@@ -31,10 +30,6 @@ public class ToolRegistryManager {
     private final TingFengProperties props;
     private final TingFengPersistenceProperties persistProps;
     private final DynamicPlannerHolder plannerHolder;
-    private final String redisHost;
-    private final int redisPort;
-    private final String redisPassword;
-    private final int redisDatabase;
 
     /** 所有活跃客户端: name → McpClient */
     private final Map<String, McpClient> clients = new ConcurrentHashMap<>();
@@ -55,19 +50,11 @@ public class ToolRegistryManager {
     public ToolRegistryManager(ChatModel model,
                                TingFengProperties props,
                                TingFengPersistenceProperties persistProps,
-                               DynamicPlannerHolder plannerHolder,
-                               @Value("${spring.data.redis.host:localhost}") String redisHost,
-                               @Value("${spring.data.redis.port:6379}") int redisPort,
-                               @Value("${spring.data.redis.password:}") String redisPassword,
-                               @Value("${spring.data.redis.database:0}") int redisDatabase) {
+                               DynamicPlannerHolder plannerHolder) {
         this.model = model;
         this.props = props;
         this.persistProps = persistProps;
         this.plannerHolder = plannerHolder;
-        this.redisHost = redisHost;
-        this.redisPort = redisPort;
-        this.redisPassword = redisPassword;
-        this.redisDatabase = redisDatabase;
 
         // 创建 5 个 Executor holder
         for (String tag : List.of("mysql", "redis", "cpu", "snapshot", "full")) {
@@ -112,10 +99,12 @@ public class ToolRegistryManager {
                        "MYSQL_DB", props.getMysql().getDb()), persistEnv));
 
         registerBuiltinClient("redis-mcp", "com.tingfeng.agent.mcp.RedisMcpServer", mergeEnv(
-                Map.of("REDIS_HOST", redisHost,
-                       "REDIS_PORT", String.valueOf(redisPort),
-                       "REDIS_PASSWORD", redisPassword != null ? redisPassword : "",
-                       "REDIS_DATABASE", String.valueOf(redisDatabase)), persistEnv));
+                Map.of("REDIS_HOST", props.getRedis().getHost(),
+                       "REDIS_PORT", String.valueOf(props.getRedis().getPort()),
+                       "REDIS_PASSWORD", props.getRedis().getPassword() != null
+                               ? props.getRedis().getPassword() : "",
+                       "REDIS_DATABASE", String.valueOf(props.getRedis().getDatabase())),
+                persistEnv));
 
         registerBuiltinClient("cpu-mcp", "com.tingfeng.agent.mcp.CpuMcpServer", persistEnv != null
                 ? persistEnv : Map.of());
@@ -281,6 +270,66 @@ public class ToolRegistryManager {
     }
 
     public McpClient getSnapshotClient() { return clients.get("snapshot-mcp"); }
+
+    /** 获取指定 client（用于直调 MCP 工具，不经过 LLM） */
+    public McpClient getClient(String name) { return clients.get(name); }
+
+    /** 直接调用 MCP 工具（不走 Executor/LLM），用于批准后的执行操作 */
+    public Map<String, Object> executeAction(String clientName, String toolName,
+                                              Map<String, Object> args) {
+        McpClient client = clients.get(clientName);
+        if (client == null) return Map.of("ok", false, "error", "工具源 '" + clientName + "' 不存在");
+
+        long start = System.currentTimeMillis();
+        try {
+            // 通过 McpClient 直调 tools/call
+            var request = dev.langchain4j.agent.tool.ToolExecutionRequest.builder()
+                    .name(toolName)
+                    .arguments(new com.fasterxml.jackson.databind.ObjectMapper()
+                            .writeValueAsString(args))
+                    .build();
+            var result = client.executeTool(request);
+            String output = result != null ? result.resultText() : "OK";
+            int elapsed = (int)(System.currentTimeMillis() - start);
+            logExecution(clientName, toolName, args.toString(), output, elapsed, true, null);
+            return Map.of("ok", true, "toolName", toolName,
+                    "output", output, "elapsedMs", elapsed);
+        } catch (Exception e) {
+            int elapsed = (int)(System.currentTimeMillis() - start);
+            logExecution(clientName, toolName, args.toString(), null, elapsed, false, e.getMessage());
+            return Map.of("ok", false, "error", e.getMessage(), "elapsedMs", elapsed);
+        }
+    }
+
+    private void logExecution(String clientName, String toolName, String args,
+                               String result, int elapsedMs, boolean success, String errorMsg) {
+        Map<String, String> persistEnv = builtinEnvs.get(clientName);
+        if (persistEnv == null || !persistEnv.containsKey("PERSISTENCE_URL")) {
+            // try snapshot-mcp's env (shared persistence)
+            persistEnv = builtinEnvs.get("snapshot-mcp");
+        }
+        if (persistEnv == null) return;
+        String url = persistEnv.get("PERSISTENCE_URL");
+        if (url == null || url.isBlank()) return;
+
+        try (java.sql.Connection conn = java.sql.DriverManager.getConnection(
+                url + (url.contains("?") ? "&" : "?") + "connectTimeout=1000&socketTimeout=1000",
+                persistEnv.getOrDefault("PERSISTENCE_USER", "root"),
+                persistEnv.getOrDefault("PERSISTENCE_PASS", "123456"));
+             java.sql.PreparedStatement pstmt = conn.prepareStatement(
+                     "INSERT INTO tingfeng_execution_log" +
+                     " (action_id, tool_name, args, result, success, executed_at)" +
+                     " VALUES (?,?,?,?,?,?)")) {
+            pstmt.setQueryTimeout(1);
+            pstmt.setString(1, toolName + "-" + System.currentTimeMillis());
+            pstmt.setString(2, toolName);
+            pstmt.setString(3, args != null && args.length() > 2000 ? args.substring(0, 2000) : args);
+            pstmt.setString(4, result != null && result.length() > 1000 ? result.substring(0, 1000) : result);
+            pstmt.setInt(5, success ? 1 : 0);
+            pstmt.setLong(6, System.currentTimeMillis());
+            pstmt.executeUpdate();
+        } catch (Exception ignored) {}
+    }
 
     // ── 内部: 标签状态 ──
 

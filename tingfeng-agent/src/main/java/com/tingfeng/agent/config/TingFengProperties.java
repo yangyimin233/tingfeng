@@ -8,6 +8,7 @@ public class TingFengProperties {
     private Llm llm = new Llm();
     private Memory memory = new Memory();
     private Mysql mysql = new Mysql();
+    private Redis redis = new Redis();
     private Executor executor = new Executor();
     private Ollama ollama = new Ollama();
 
@@ -19,6 +20,9 @@ public class TingFengProperties {
 
     public Mysql getMysql() { return mysql; }
     public void setMysql(Mysql mysql) { this.mysql = mysql; }
+
+    public Redis getRedis() { return redis; }
+    public void setRedis(Redis redis) { this.redis = redis; }
 
     public Executor getExecutor() { return executor; }
     public void setExecutor(Executor executor) { this.executor = executor; }
@@ -99,5 +103,24 @@ public class TingFengProperties {
 
         public String getDb() { return db; }
         public void setDb(String db) { this.db = db; }
+    }
+
+    public static class Redis {
+        private String host = "localhost";
+        private int port = 6379;
+        private String password = "123456";
+        private int database = 1;
+
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+
+        public int getPort() { return port; }
+        public void setPort(int port) { this.port = port; }
+
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+
+        public int getDatabase() { return database; }
+        public void setDatabase(int database) { this.database = database; }
     }
 }

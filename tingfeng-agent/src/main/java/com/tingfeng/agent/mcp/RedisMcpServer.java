@@ -115,6 +115,31 @@ public class RedisMcpServer {
                 "用于诊断 Redis 内存占用瓶颈，定位哪些 key 消耗了最多内存。",
                 bigKeySchema);
 
+        // ── 执行工具 (不注入 Executor，仅 ToolRegistryManager.executeAction 直调) ──
+
+        ObjectNode expireSchema = MAPPER.createObjectNode();
+        expireSchema.put("type", "object");
+        ObjectNode expireProps = expireSchema.putObject("properties");
+        expireProps.putObject("key")
+                .put("type", "string")
+                .put("description", "目标 Key 名");
+        expireProps.putObject("ttlSeconds")
+                .put("type", "integer")
+                .put("description", "过期时间(秒)，如 3600 表示 1 小时后过期");
+        addTool(tools, "redis_set_expire",
+                "EXEC: 给指定 Key 设置过期时间(秒)。用于修复那些未设 TTL 导致内存不释放的 Key。",
+                expireSchema);
+
+        ObjectNode deleteSchema = MAPPER.createObjectNode();
+        deleteSchema.put("type", "object");
+        ObjectNode deleteProps = deleteSchema.putObject("properties");
+        deleteProps.putObject("key")
+                .put("type", "string")
+                .put("description", "要删除的 Key 名");
+        addTool(tools, "redis_delete_key",
+                "EXEC: 删除指定 Key。⚠️ 不可逆！执行前自动 DUMP 备份，紧急时可恢复。",
+                deleteSchema);
+
         ObjectNode result = MAPPER.createObjectNode();
         result.set("tools", tools);
         send(requestId, result);
@@ -145,6 +170,8 @@ public class RedisMcpServer {
                 case "redis_metrics" -> getMetrics();
                 case "redis_slow_log" -> getSlowLog(args);
                 case "redis_big_keys" -> getBigKeys(args);
+                case "redis_set_expire" -> setExpire(args);
+                case "redis_delete_key" -> deleteKey(args);
                 default -> { sendError(requestId, -32602, "Unknown tool: " + toolName); yield null; }
             };
             if (text == null) return;
@@ -326,6 +353,56 @@ public class RedisMcpServer {
             };
         } catch (Exception e) {
             return 0;
+        }
+    }
+
+    // ── 执行工具 ──
+
+    private static String setExpire(JsonNode args) {
+        String key = args.path("key").asText();
+        if (key.isBlank()) return "错误: key 不能为空";
+        int ttl = args.has("ttlSeconds") ? args.get("ttlSeconds").asInt() : 3600;
+        if (ttl <= 0) return "错误: ttlSeconds 必须大于 0";
+
+        try (Jedis jedis = getConnection()) {
+            long currentTtl = jedis.ttl(key);
+            if (currentTtl == -2) return "错误: Key '" + key + "' 不存在";
+            jedis.expire(key, ttl);
+            return "OK: Key '" + key + "' TTL 已设 " + ttl + " 秒 (原 TTL: "
+                    + (currentTtl < 0 ? "永久" : currentTtl + "秒") + ")";
+        } catch (Exception e) {
+            return "ERROR: EXPIRE 失败 - " + e.getMessage();
+        }
+    }
+
+    private static String deleteKey(JsonNode args) {
+        String key = args.path("key").asText();
+        if (key.isBlank()) return "错误: key 不能为空";
+
+        try (Jedis jedis = getConnection()) {
+            if (!jedis.exists(key)) return "错误: Key '" + key + "' 不存在";
+            String type = jedis.type(key);
+
+            // 安全备份: DUMP → Base64, 紧急时可 RESTORE
+            String dumpBackup = null;
+            try {
+                byte[] dump = jedis.dump(key);
+                if (dump != null && dump.length > 0) {
+                    dumpBackup = java.util.Base64.getEncoder().encodeToString(dump);
+                }
+            } catch (Exception ignored) {}
+
+            long delCount = jedis.del(key);
+            StringBuilder sb = new StringBuilder();
+            sb.append("OK: Key '").append(key).append("' (类型:").append(type)
+                    .append(") 已删除, 返回 ").append(delCount);
+            if (dumpBackup != null && !dumpBackup.isEmpty()) {
+                sb.append("\n[恢复] 如需恢复请执行: RESTORE ").append(key)
+                        .append(" 0 ").append(dumpBackup);
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "ERROR: DEL 失败 - " + e.getMessage();
         }
     }
 

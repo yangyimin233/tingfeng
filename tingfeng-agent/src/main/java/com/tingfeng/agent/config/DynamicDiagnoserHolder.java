@@ -1,16 +1,16 @@
 package com.tingfeng.agent.config;
 
-import com.tingfeng.agent.agent.ExecutorAgent;
+import com.tingfeng.agent.agent.DiagnoserAgent;
 
 /**
- * volatile 可替换的 ExecutorAgent 代理。
- * 实现 ExecutorAgent 接口，内部 delegate 可随时 swap，调用方无感知。
+ * volatile 可替换的 DiagnoserAgent 代理。
+ * 实现 DiagnoserAgent 接口，内部 delegate 可随时 swap，调用方无感知。
  */
-public class DynamicExecutorHolder implements ExecutorAgent {
+public class DynamicDiagnoserHolder implements DiagnoserAgent {
 
-    private volatile ExecutorAgent delegate;
+    private volatile DiagnoserAgent delegate;
 
-    public DynamicExecutorHolder(ExecutorAgent delegate) {
+    public DynamicDiagnoserHolder(DiagnoserAgent delegate) {
         this.delegate = delegate;
     }
 
@@ -20,7 +20,7 @@ public class DynamicExecutorHolder implements ExecutorAgent {
     }
 
     /** 热替换内部代理实例, 线程安全 */
-    public void swap(ExecutorAgent newAgent) {
+    public void swap(DiagnoserAgent newAgent) {
         this.delegate = newAgent;
     }
 

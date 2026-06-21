@@ -1,7 +1,7 @@
 package com.tingfeng.agent.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tingfeng.agent.agent.ExecutorAgent;
+import com.tingfeng.agent.agent.DiagnoserAgent;
 import com.tingfeng.agent.agent.PlannerAgent;
 import com.tingfeng.agent.agent.ReporterAgent;
 import com.tingfeng.agent.agent.TodoItem;
@@ -203,9 +203,9 @@ public class AgentWorkflowService {
             Executors.newFixedThreadPool(4);
 
     private TaskResult executeTask(TodoItem item) {
-        ExecutorAgent executor = routeByTags(item.tags());
+        DiagnoserAgent diagnoser = routeByTags(item.tags());
         try {
-            String note = executor.execute(item.task());
+            String note = diagnoser.execute(item.task());
             return new TaskResult(note, true);
         } catch (Exception e) {
             log.warn("  执行失败: {}", e.getMessage());
@@ -213,8 +213,8 @@ public class AgentWorkflowService {
         }
     }
 
-    /** 按标签路由 Executor, 委托 ToolRegistryManager 解析 */
-    private ExecutorAgent routeByTags(List<String> tags) {
+    /** 按标签路由 Diagnoser, 委托 ToolRegistryManager 解析 */
+    private DiagnoserAgent routeByTags(List<String> tags) {
         String tag = (tags != null && tags.size() == 1) ? tags.get(0) : null;
         return registryManager.route(tag);
     }

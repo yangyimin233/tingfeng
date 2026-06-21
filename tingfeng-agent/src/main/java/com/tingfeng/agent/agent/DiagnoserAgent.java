@@ -3,7 +3,11 @@ package com.tingfeng.agent.agent;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 
-public interface ExecutorAgent {
+/**
+ * 诊断执行者 — 使用工具采集真实运维数据，写排查笔记。
+ * （原 ExecutorAgent，重命名以避免与"修复执行"角色混淆）
+ */
+public interface DiagnoserAgent {
 
     @SystemMessage("""
             你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。

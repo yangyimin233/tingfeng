@@ -1,6 +1,6 @@
 package com.tingfeng.agent.config;
 
-import com.tingfeng.agent.agent.ExecutorAgent;
+import com.tingfeng.agent.agent.DiagnoserAgent;
 import com.tingfeng.agent.agent.PlannerAgent;
 import com.tingfeng.agent.agent.ReporterAgent;
 import dev.langchain4j.mcp.McpToolProvider;
@@ -41,7 +41,7 @@ public class ToolRegistryManager {
     /** 执行工具注册表: clientName → [toolName, ...] */
     private final Map<String, java.util.List<String>> executionTools = new ConcurrentHashMap<>();
     /** 所有 Executor: tag → holder */
-    private final Map<String, DynamicExecutorHolder> executors = new ConcurrentHashMap<>();
+    private final Map<String, DynamicDiagnoserHolder> diagnosers = new ConcurrentHashMap<>();
     /** 标签定义: tag → (描述, 依赖的 client names) */
     private final Map<String, TagDef> tagDefs = new LinkedHashMap<>();
     /** 内置客户端的原始环境变量, 用于重新注册时自动恢复 */
@@ -65,7 +65,7 @@ public class ToolRegistryManager {
 
         // 创建 5 个 Executor holder
         for (String tag : List.of("mysql", "redis", "cpu", "snapshot", "full")) {
-            executors.put(tag, new DynamicExecutorHolder(placeholderAgent()));
+            diagnosers.put(tag, new DynamicDiagnoserHolder(placeholderDiagnoser()));
         }
 
         // 标签定义: tag → (描述, 依赖的 client names)
@@ -86,8 +86,8 @@ public class ToolRegistryManager {
         executionTools.put("redis-mcp", List.of("redis_set_expire", "redis_delete_key"));
     }
 
-    private ExecutorAgent placeholderAgent() {
-        return AiServices.builder(ExecutorAgent.class).chatModel(model).build();
+    private DiagnoserAgent placeholderDiagnoser() {
+        return AiServices.builder(DiagnoserAgent.class).chatModel(model).build();
     }
 
     // ── 启动 ──
@@ -151,10 +151,10 @@ public class ToolRegistryManager {
     // ── 路由 ──
 
     /** 按标签查找 Executor, 找不到回退 full */
-    public ExecutorAgent route(String tag) {
-        if (tag == null) return executors.get("full");
-        DynamicExecutorHolder h = executors.get(tag.toLowerCase());
-        return h != null ? h : executors.get("full");
+    public DiagnoserAgent route(String tag) {
+        if (tag == null) return diagnosers.get("full");
+        DynamicDiagnoserHolder h = diagnosers.get(tag.toLowerCase());
+        return h != null ? h : diagnosers.get("full");
     }
 
     // ── 注册 / 注销 ──
@@ -182,8 +182,8 @@ public class ToolRegistryManager {
         metas.put(name, new ClientMeta(name, mainClass, jarPath, false, tag, tagDesc, env));
 
         if (tag != null && !tag.isBlank()) {
-            if (!executors.containsKey(tag)) {
-                executors.put(tag, new DynamicExecutorHolder(placeholderAgent()));
+            if (!diagnosers.containsKey(tag)) {
+                diagnosers.put(tag, new DynamicDiagnoserHolder(placeholderDiagnoser()));
             }
             if (!tagDefs.containsKey(tag)) {
                 tagDefs.put(tag, new TagDef(tag,
@@ -212,7 +212,7 @@ public class ToolRegistryManager {
 
         if (meta != null && meta.tag != null && !isBuiltinTag(meta.tag)) {
             tagDefs.remove(meta.tag);
-            executors.remove(meta.tag);
+            diagnosers.remove(meta.tag);
         }
 
         rebuildAll();
@@ -268,9 +268,9 @@ public class ToolRegistryManager {
     // ── 测试 ──
 
     public Map<String, Object> test(String question, String target) {
-        DynamicExecutorHolder holder = (target != null && !target.isBlank())
-                ? executors.getOrDefault(target, executors.get("full"))
-                : executors.get("full");
+        DynamicDiagnoserHolder holder = (target != null && !target.isBlank())
+                ? diagnosers.getOrDefault(target, diagnosers.get("full"))
+                : diagnosers.get("full");
         long start = System.currentTimeMillis();
         try {
             String answer = holder.execute(question);
@@ -406,7 +406,7 @@ public class ToolRegistryManager {
 
     private void rebuildAll() {
         for (TagDef def : tagDefs.values()) {
-            DynamicExecutorHolder holder = executors.get(def.tag);
+            DynamicDiagnoserHolder holder = diagnosers.get(def.tag);
             if (holder == null) continue;
             if (isTagActive(def)) {
                 rebuildOne(holder, def.tag, def.requires);
@@ -415,21 +415,21 @@ public class ToolRegistryManager {
             }
         }
         // full: 所有活跃 client
-        rebuildOne(executors.get("full"), "full", new ArrayList<>(clients.keySet()));
+        rebuildOne(diagnosers.get("full"), "full", new ArrayList<>(clients.keySet()));
     }
 
-    private void rebuildOne(DynamicExecutorHolder holder, String label, List<String> requiredNames) {
+    private void rebuildOne(DynamicDiagnoserHolder holder, String label, List<String> requiredNames) {
         List<McpClient> list = new ArrayList<>();
         for (String name : requiredNames) {
             McpClient c = clients.get(name);
             if (c != null) list.add(c);
         }
 
-        ExecutorAgent agent;
+        DiagnoserAgent agent;
         if (list.isEmpty()) {
-            agent = placeholderAgent();
+            agent = placeholderDiagnoser();
         } else {
-            agent = AiServices.builder(ExecutorAgent.class)
+            agent = AiServices.builder(DiagnoserAgent.class)
                     .chatModel(model)
                     .toolProvider(McpToolProvider.builder()
                             .mcpClients(list.toArray(McpClient[]::new))
@@ -438,7 +438,7 @@ public class ToolRegistryManager {
                     .build();
         }
         holder.swap(agent);
-        log.info("{}-Executor 已重建, clients={}", label, list.size());
+        log.info("{}-Diagnoser 已重建, clients={}", label, list.size());
     }
 
     private void rebuildPlanner() {
@@ -562,7 +562,7 @@ public class ToolRegistryManager {
 
     private Map<String, Object> holderHashes() {
         Map<String, Object> h = new LinkedHashMap<>();
-        for (var e : executors.entrySet()) {
+        for (var e : diagnosers.entrySet()) {
             h.put(e.getKey(), e.getValue().delegateHash());
         }
         return h;

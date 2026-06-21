@@ -3,12 +3,15 @@ package com.tingfeng.agent.config;
 import com.tingfeng.agent.agent.DiagnoserAgent;
 import com.tingfeng.agent.agent.PlannerAgent;
 import com.tingfeng.agent.agent.ReporterAgent;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.invocation.InvocationContext;
 import dev.langchain4j.mcp.McpToolProvider;
-import dev.langchain4j.mcp.client.DefaultMcpClient;
-import dev.langchain4j.mcp.client.McpClient;
+import dev.langchain4j.mcp.client.*;
 import dev.langchain4j.mcp.client.transport.stdio.StdioMcpTransport;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
+import dev.langchain4j.service.tool.ToolExecutionResult;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,6 +87,33 @@ public class ToolRegistryManager {
 
         // 执行工具注册（后续新增执行工具只需加一行）
         executionTools.put("redis-mcp", List.of("redis_set_expire", "redis_delete_key"));
+    }
+
+    /** 包装 McpClient — 从 tools/list 中过滤掉执行工具，Diagnoser LLM 看不到写操作 */
+    private McpClient filterReadOnly(McpClient raw, Set<String> excludedTools) {
+        return new McpClient() {
+            public String key() { return raw.key(); }
+            public List<ToolSpecification> listTools() {
+                return raw.listTools().stream()
+                        .filter(t -> !excludedTools.contains(t.name())).toList();
+            }
+            public List<ToolSpecification> listTools(InvocationContext c) { return listTools(); }
+            public ToolExecutionResult executeTool(ToolExecutionRequest r) { return raw.executeTool(r); }
+            public ToolExecutionResult executeTool(ToolExecutionRequest r, InvocationContext c) { return executeTool(r); }
+            public List<McpResource> listResources() { return raw.listResources(); }
+            public List<McpResource> listResources(InvocationContext c) { return listResources(); }
+            public List<McpResourceTemplate> listResourceTemplates() { return raw.listResourceTemplates(); }
+            public List<McpResourceTemplate> listResourceTemplates(InvocationContext c) { return listResourceTemplates(); }
+            public McpReadResourceResult readResource(String u) { return raw.readResource(u); }
+            public McpReadResourceResult readResource(String u, InvocationContext c) { return readResource(u); }
+            public void subscribeToResource(String u) { raw.subscribeToResource(u); }
+            public void unsubscribeFromResource(String u) { raw.unsubscribeFromResource(u); }
+            public List<McpPrompt> listPrompts() { return raw.listPrompts(); }
+            public McpGetPromptResult getPrompt(String n, Map<String,Object> a) { return raw.getPrompt(n, a); }
+            public void checkHealth() { raw.checkHealth(); }
+            public void setRoots(List<McpRoot> r) { raw.setRoots(r); }
+            public void close() throws Exception { raw.close(); }
+        };
     }
 
     private DiagnoserAgent placeholderDiagnoser() {
@@ -420,9 +450,15 @@ public class ToolRegistryManager {
 
     private void rebuildOne(DynamicDiagnoserHolder holder, String label, List<String> requiredNames) {
         List<McpClient> list = new ArrayList<>();
+        // 收集所有执行工具名，Diagnoser 不能看到写工具
+        Set<String> execToolNames = new HashSet<>();
+        for (var tl : executionTools.values()) execToolNames.addAll(tl);
+
         for (String name : requiredNames) {
             McpClient c = clients.get(name);
-            if (c != null) list.add(c);
+            if (c != null) {
+                list.add(execToolNames.isEmpty() ? c : filterReadOnly(c, execToolNames));
+            }
         }
 
         DiagnoserAgent agent;

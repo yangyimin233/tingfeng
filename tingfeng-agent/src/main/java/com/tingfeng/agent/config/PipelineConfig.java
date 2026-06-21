@@ -21,9 +21,12 @@ public class PipelineConfig {
     }
 
     @Bean
-    ReporterAgent reporterAgent(ChatModel model) {
-        return AiServices.builder(ReporterAgent.class)
+    DynamicReporterHolder reporterAgent(ChatModel model) {
+        // 占位, ToolRegistryManager.init() 会重建为完整版本
+        ReporterAgent agent = AiServices.builder(ReporterAgent.class)
                 .chatModel(model)
+                .systemMessage("系统初始化中, 执行工具尚未加载...")
                 .build();
+        return new DynamicReporterHolder(agent);
     }
 }

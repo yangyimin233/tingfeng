@@ -173,6 +173,37 @@
   .snapshot-card .detail.ret { color: var(--green); }
   .empty-state { text-align: center; color: var(--dim); padding: 40px 20px; font-size: 13px; }
 
+  /* ── Actions Panel ── */
+  #actions-panel {
+    border-top: 1px solid var(--border); padding: 16px 24px; display: none;
+  }
+  #actions-panel.show { display: block; }
+  #actions-panel h3 { font-size: 13px; margin-bottom: 12px; color: var(--accent2); }
+  .action-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 0;
+    border-bottom: 1px solid #1a2030; font-size: 12px;
+  }
+  .action-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent2); }
+  .risk-badge {
+    padding: 1px 8px; border-radius: 8px; font-size: 10px; font-weight: 600; flex-shrink: 0;
+  }
+  .risk-badge.safe { background: #064e3b; color: var(--green); }
+  .risk-badge.caution { background: #78350f; color: var(--yellow); }
+  .risk-badge.dangerous { background: #7f1d1d; color: var(--red); }
+  .action-item .warn { font-size: 10px; color: var(--red); margin-left: auto; }
+  .action-buttons { display: flex; gap: 8px; margin-top: 12px; }
+  .action-buttons button {
+    flex: 1; padding: 10px 16px; border-radius: 8px; border: none;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  #execute-btn { background: var(--accent2); color: #fff; }
+  #dismiss-btn { background: #262d3c; color: #94a3b8; border: 1px solid var(--border); }
+  #dismiss-btn:hover:not(:disabled) { background: #303a4c; color: #fff; }
+  #execute-btn:disabled, #dismiss-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .execute-result { font-size: 12px; margin-top: 4px; padding: 4px 8px; border-radius: 4px; }
+  .execute-result.ok { color: var(--green); }
+  .execute-result.err { color: var(--red); }
+
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -236,6 +267,16 @@
     <input id="msg-input" type="text" placeholder="输入运维诊断问题..."
            onkeydown="if(event.key==='Enter')send()">
     <button id="send-btn" onclick="send()">发送</button>
+  </div>
+</section>
+
+<!-- 可执行操作面板 -->
+<section id="actions-panel">
+  <h3> 可执行操作</h3>
+  <div id="actions-list"></div>
+  <div class="action-buttons">
+    <button id="dismiss-btn" onclick="dismissActions()">忽略, 不需要执行</button>
+    <button id="execute-btn" onclick="executeApproved()">执行选中操作</button>
   </div>
 </section>
 
@@ -410,12 +451,20 @@ function sendPipelineSSE(msg) {
 
     es.addEventListener('report', e => {
       statusDiv.innerHTML = ' 汇总完成';
-      // Remove all system-msg progress divs
       msgs.querySelectorAll('.system-msg').forEach(el => el.remove());
       reportDiv = addMsg('agent', marked.parse(e.data));
       updateStatus('ok');
       es.close();
       resolve();
+    });
+
+    es.addEventListener('actions', e => {
+      try {
+        const { actions } = JSON.parse(e.data);
+        if (actions && actions.length > 0) {
+          renderActions(actions);
+        }
+      } catch (_) {}
     });
 
     es.addEventListener('error', e => {
@@ -437,6 +486,84 @@ function sendPipelineSSE(msg) {
 
 function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── 可执行操作 ──
+
+let pendingActions = [];
+
+function renderActions(actions) {
+  pendingActions = actions;
+  const panel = document.getElementById('actions-panel');
+  const listEl = document.getElementById('actions-list');
+  const btn = document.getElementById('execute-btn');
+  const dismissBtn = document.getElementById('dismiss-btn');
+  panel.classList.add('show');
+
+  listEl.innerHTML = actions.map(function(a) {
+    const riskLabel = a.risk || 'safe';
+    const checked = riskLabel === 'safe' ? 'checked' : '';
+    const warn = riskLabel === 'dangerous'
+      ? '<span class="warn"> 不可逆, 需二次确认</span>' : '';
+    return '<div class="action-item">'
+      + '<input type="checkbox" id="' + a.id + '" ' + checked + '>'
+      + '<span class="risk-badge ' + riskLabel + '">' + riskLabel + '</span>'
+      + '<label for="' + a.id + '">' + escapeHtml(a.desc) + '</label>'
+      + warn + '</div>';
+  }).join('');
+
+  btn.disabled = false;
+  btn.textContent = '执行选中操作';
+  dismissBtn.disabled = false;
+  dismissBtn.removeAttribute('disabled');
+  dismissBtn.style.cursor = 'pointer';
+  panel.scrollIntoView({ behavior: 'smooth' });
+}
+
+function dismissActions() {
+  var panel = document.getElementById('actions-panel');
+  panel.classList.remove('show');
+  panel.style.display = 'none';
+  pendingActions = [];
+  updateStatus('ok');
+}
+
+async function executeApproved() {
+  var btn = document.getElementById('execute-btn');
+  var dismissBtn = document.getElementById('dismiss-btn');
+  btn.disabled = true;
+  dismissBtn.disabled = true;
+  btn.textContent = '执行中...';
+
+  const checkboxes = document.querySelectorAll('#actions-list input[type=checkbox]:checked');
+  for (const cb of checkboxes) {
+    const action = pendingActions.find(function(a) { return a.id === cb.id; });
+    if (!action) continue;
+    const itemEl = cb.closest('.action-item');
+    try {
+      const res = await fetch('/admin/tools/execute', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          client: action.client,
+          tool: action.tool,
+          args: action.args
+        })
+      });
+      const json = await res.json();
+      const resultEl = document.createElement('div');
+      resultEl.className = 'execute-result ' + (json.ok ? 'ok' : 'err');
+      resultEl.textContent = json.ok ? ' OK: ' + json.output : ' ERROR: ' + (json.error || '');
+      itemEl.appendChild(resultEl);
+    } catch (e) {
+      const resultEl = document.createElement('div');
+      resultEl.className = 'execute-result err';
+      resultEl.textContent = ' 网络错误: ' + e.message;
+      itemEl.appendChild(resultEl);
+    }
+  }
+  btn.disabled = false;
+  btn.textContent = '执行选中操作 (完成)';
 }
 
 // ── 探针上报轮询 ──

@@ -158,6 +158,12 @@ public class AgentWorkflowService {
             } catch (Exception e) {
                 report = "## 诊断报告生成失败\n\n" + notes;
             }
+            // actions 必须在 report 之前发送, 否则前端收到 report 后会关闭 EventSource
+            String actionsJson = extractActionsBlock(report);
+            if (actionsJson != null) {
+                emitter.send(event("actions", actionsJson));
+            }
+
             emitter.send(event("report", report));
             emitter.complete();
 
@@ -171,6 +177,25 @@ public class AgentWorkflowService {
     }
 
     // ── 并行任务执行 ──
+
+    /** 从 Reporter 输出中提取 ```json ... ``` 内的 actions 块 */
+    private String extractActionsBlock(String report) {
+        if (report == null || report.isBlank()) return null;
+        int start = report.indexOf("```json");
+        if (start < 0) return null;
+        start = report.indexOf("{", start);
+        if (start < 0) return null;
+        int depth = 0, end = start;
+        for (int i = start; i < report.length(); i++) {
+            char c = report.charAt(i);
+            if (c == '{') depth++;
+            else if (c == '}') { depth--; if (depth == 0) { end = i + 1; break; } }
+        }
+        String json = report.substring(start, end);
+        if (!json.contains("\"actions\"")) return null;
+        try { MAPPER.readTree(json); return json; }
+        catch (Exception e) { log.debug("actions JSON 解析失败: {}", e.getMessage()); return null; }
+    }
 
     private record TaskResult(String note, boolean ok) {}
 

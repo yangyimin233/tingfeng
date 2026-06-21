@@ -2,6 +2,7 @@ package com.tingfeng.agent.config;
 
 import com.tingfeng.agent.agent.ExecutorAgent;
 import com.tingfeng.agent.agent.PlannerAgent;
+import com.tingfeng.agent.agent.ReporterAgent;
 import dev.langchain4j.mcp.McpToolProvider;
 import dev.langchain4j.mcp.client.DefaultMcpClient;
 import dev.langchain4j.mcp.client.McpClient;
@@ -31,10 +32,14 @@ public class ToolRegistryManager {
     private final TingFengPersistenceProperties persistProps;
     private final DynamicPlannerHolder plannerHolder;
 
+    /** Reporter Executor holder */
+    private final DynamicReporterHolder reporterHolder;
     /** 所有活跃客户端: name → McpClient */
     private final Map<String, McpClient> clients = new ConcurrentHashMap<>();
     /** 客户端元数据: name → Meta */
     private final Map<String, ClientMeta> metas = new ConcurrentHashMap<>();
+    /** 执行工具注册表: clientName → [toolName, ...] */
+    private final Map<String, java.util.List<String>> executionTools = new ConcurrentHashMap<>();
     /** 所有 Executor: tag → holder */
     private final Map<String, DynamicExecutorHolder> executors = new ConcurrentHashMap<>();
     /** 标签定义: tag → (描述, 依赖的 client names) */
@@ -50,11 +55,13 @@ public class ToolRegistryManager {
     public ToolRegistryManager(ChatModel model,
                                TingFengProperties props,
                                TingFengPersistenceProperties persistProps,
-                               DynamicPlannerHolder plannerHolder) {
+                               DynamicPlannerHolder plannerHolder,
+                               DynamicReporterHolder reporterHolder) {
         this.model = model;
         this.props = props;
         this.persistProps = persistProps;
         this.plannerHolder = plannerHolder;
+        this.reporterHolder = reporterHolder;
 
         // 创建 5 个 Executor holder
         for (String tag : List.of("mysql", "redis", "cpu", "snapshot", "full")) {
@@ -74,6 +81,9 @@ public class ToolRegistryManager {
         tagDefs.put("snapshot", new TagDef("snapshot",
                 "探针快照诊断（方法调用历史、异常记录、慢调用、响应时间等）",
                 List.of("snapshot-mcp")));
+
+        // 执行工具注册（后续新增执行工具只需加一行）
+        executionTools.put("redis-mcp", List.of("redis_set_expire", "redis_delete_key"));
     }
 
     private ExecutorAgent placeholderAgent() {
@@ -115,6 +125,7 @@ public class ToolRegistryManager {
 
         rebuildAll();
         rebuildPlanner();
+        rebuildReporter();
         log.info("ToolRegistryManager 初始化完成: clients={}, activeTags={}",
                 clients.size(), activeTags());
     }
@@ -183,6 +194,7 @@ public class ToolRegistryManager {
 
         rebuildAll();
         rebuildPlanner();
+        rebuildReporter();
         log.info("工具源 '{}' 注册成功, tag={}", name, tag);
         return Map.of("ok", true, "name", name, "tag", tag,
                 "totalClients", clients.size(), "activeTags", activeTags());
@@ -205,6 +217,7 @@ public class ToolRegistryManager {
 
         rebuildAll();
         rebuildPlanner();
+        rebuildReporter();
         log.info("工具源 '{}' 已注销", name);
         return Map.of("ok", true, "name", name, "totalClients", clients.size(),
                 "activeTags", activeTags());
@@ -476,6 +489,73 @@ public class ToolRegistryManager {
                 .build();
         plannerHolder.swap(newAgent);
         log.info("Planner 已重建, activeTags={}", activeTags());
+    }
+
+    private void rebuildReporter() {
+        StringBuilder msg = new StringBuilder("""
+                你是一个资深运维诊断分析师。根据用户问题、排查计划和排查笔记，输出最终诊断报告。
+
+                报告格式：
+                ## 一、问题概述
+                ## 二、排查过程与发现
+                ## 三、根因分析
+                ## 四、修复建议
+                ## 五、总结
+                ## 六、可执行操作
+
+                规则：
+                1. 基于排查笔记的真实数据来分析，不要猜测
+                2. 如果排查不充分，在报告中指出信息缺口
+                3. 修复建议要具体可执行
+                4. 在「六、可执行操作」中使用以下 JSON 格式列出可直接执行的修复动作（如果无操作则写「无」）：
+
+                """);
+
+        // 用第一个 client 名构建示例
+        String exampleClient = executionTools.isEmpty() ? "no-client" : executionTools.keySet().iterator().next();
+        msg.append("```json\n{\n  \"actions\": [\n");
+        msg.append("    {\"id\":\"a1\",\"client\":\"").append(exampleClient)
+                .append("\",\"tool\":\"redis_set_expire\",\n")
+                .append("     \"args\":{\"key\":\"具体Key名\",\"ttlSeconds\":3600},\"desc\":\"给 Key 设过期\",\"risk\":\"safe\"},\n");
+        msg.append("    {\"id\":\"a2\",\"client\":\"").append(exampleClient)
+                .append("\",\"tool\":\"redis_delete_key\",\n")
+                .append("     \"args\":{\"key\":\"具体Key名\"},\"desc\":\"删除无用Key\",\"risk\":\"dangerous\"}\n");
+        msg.append("  ]\n}\n```\n\n");
+
+        msg.append("当前可用执行工具（client 必须严格使用下面列出的名称）：\n");
+
+        if (executionTools.isEmpty()) {
+            msg.append("  无\n");
+        } else {
+            for (var entry : executionTools.entrySet()) {
+                String client = entry.getKey();
+                for (String tool : entry.getValue()) {
+                    String desc = switch (tool) {
+                        case "redis_set_expire" -> "设 Key 过期时间(秒), args: key, ttlSeconds";
+                        case "redis_delete_key" -> "删除 Key (有备份), args: key";
+                        default -> "args 见工具定义";
+                    };
+                    msg.append("  client=\"").append(client).append("\", tool=\"")
+                            .append(tool).append("\" — ").append(desc).append("\n");
+                }
+            }
+        }
+
+        msg.append("""
+
+                重要：
+                - client 字段必须严格用上面列出的名称，不要编造
+                - 只能列出上面已有工具的 action
+                - 不要编造配置修改、服务器操作等不存在的工具
+                risk: safe=安全  caution=需关注  dangerous=不可逆需确认
+                """);
+
+        ReporterAgent newAgent = AiServices.builder(ReporterAgent.class)
+                .chatModel(model)
+                .systemMessage(msg.toString())
+                .build();
+        reporterHolder.swap(newAgent);
+        log.info("Reporter 已重建, executionTools={}", executionTools.keySet());
     }
 
     // ── 辅助 ──

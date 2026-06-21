@@ -1,0 +1,1062 @@
+D:\JDK\bin\java.exe -XX:TieredStopAtLevel=1 -Dspring.output.ansi.enabled=always -Dcom.sun.management.jmxremote -Dspring.jmx.enabled=true -Dspring.liveBeansView.mbeanDomain -Dspring.application.admin.enabled=true "-Dmanagement.endpoints.jmx.exposure.include=*" "-javaagent:C:\Users\Administrator\AppData\Local\Programs\IntelliJ IDEA Ultimate 2025.1\lib\idea_rt.jar=57257" -Dfile.encoding=UTF-8 -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8 -classpath "D:\IDEA\JAVA PROJECT\tingfeng\tingfeng-agent\target\classes;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-web\3.2.5\spring-boot-starter-web-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter\3.2.5\spring-boot-starter-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot\3.2.5\spring-boot-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-autoconfigure\3.2.5\spring-boot-autoconfigure-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-logging\3.2.5\spring-boot-starter-logging-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-classic\1.4.14\logback-classic-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-core\1.4.14\logback-core-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\jul-to-slf4j\2.0.13\jul-to-slf4j-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-core\6.1.6\spring-core-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jcl\6.1.6\spring-jcl-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-json\3.2.5\spring-boot-starter-json-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.4\jackson-datatype-jdk8-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.4\jackson-datatype-jsr310-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.4\jackson-module-parameter-names-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-tomcat\3.2.5\spring-boot-starter-tomcat-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-core\10.1.20\tomcat-embed-core-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-el\10.1.20\tomcat-embed-el-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.20\tomcat-embed-websocket-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-web\6.1.6\spring-web-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-beans\6.1.6\spring-beans-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-observation\1.12.5\micrometer-observation-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-commons\1.12.5\micrometer-commons-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-webmvc\6.1.6\spring-webmvc-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-aop\6.1.6\spring-aop-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context\6.1.6\spring-context-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-expression\6.1.6\spring-expression-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-data-redis\3.2.5\spring-boot-starter-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\lettuce\lettuce-core\6.3.2.RELEASE\lettuce-core-6.3.2.RELEASE.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-common\4.1.109.Final\netty-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-handler\4.1.109.Final\netty-handler-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-resolver\4.1.109.Final\netty-resolver-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-buffer\4.1.109.Final\netty-buffer-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport-native-unix-common\4.1.109.Final\netty-transport-native-unix-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-codec\4.1.109.Final\netty-codec-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport\4.1.109.Final\netty-transport-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\projectreactor\reactor-core\3.6.5\reactor-core-3.6.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-redis\3.2.5\spring-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-keyvalue\3.2.5\spring-data-keyvalue-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-commons\3.2.5\spring-data-commons-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-tx\6.1.6\spring-tx-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-oxm\6.1.6\spring-oxm-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context-support\6.1.6\spring-context-support-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j\1.15.1\langchain4j-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-core\1.15.1\langchain4j-core-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jspecify\jspecify\1.0.0\jspecify-1.0.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-annotations\2.15.4\jackson-annotations-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-core\2.15.4\jackson-core-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-databind\2.15.4\jackson-databind-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\opennlp\opennlp-tools\2.5.9\opennlp-tools-2.5.9.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\slf4j-api\2.0.13\slf4j-api-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-open-ai\1.15.1\langchain4j-open-ai-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client\1.15.1\langchain4j-http-client-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\knuddels\jtokkit\1.1.0\jtokkit-1.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client-jdk\1.15.1\langchain4j-http-client-jdk-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\github\ben-manes\caffeine\caffeine\3.1.8\caffeine-3.1.8.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\checkerframework\checker-qual\3.37.0\checker-qual-3.37.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\errorprone\error_prone_annotations\2.21.1\error_prone_annotations-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-mcp\1.15.1-beta25\langchain4j-mcp-1.15.1-beta25.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.23\kotlin-stdlib-common-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.9.23\kotlin-stdlib-jdk8-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib\1.9.23\kotlin-stdlib-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\annotations\13.0\annotations-13.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.9.23\kotlin-stdlib-jdk7-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp-sse\4.12.0\okhttp-sse-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-ollama\1.15.1\langchain4j-ollama-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\redis\clients\jedis\5.1.0\jedis-5.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\commons\commons-pool2\2.12.0\commons-pool2-2.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\json\json\20231013\json-20231013.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-jdbc\3.2.5\spring-boot-starter-jdbc-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jdbc\6.1.6\spring-jdbc-6.1.6.jar" com.tingfeng.agent.TingFengAgentApplication
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-06-16T15:53:12.859+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.TingFengAgentApplication       : Starting TingFengAgentApplication using Java 24.0.1 with PID 24348 (D:\IDEA\JAVA PROJECT\tingfeng\tingfeng-agent\target\classes started by Administrator in D:\IDEA\JAVA PROJECT\tingfeng)
+2026-06-16T15:53:12.861+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.TingFengAgentApplication       : No active profile set, falling back to 1 default profile: "default"
+2026-06-16T15:53:13.364+08:00  INFO 24348 --- [tingfeng-agent] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-06-16T15:53:13.367+08:00  INFO 24348 --- [tingfeng-agent] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-06-16T15:53:13.395+08:00  INFO 24348 --- [tingfeng-agent] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 12 ms. Found 0 Redis repository interfaces.
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by org.apache.tomcat.jni.Library in an unnamed module (file:/D:/Maven/apache-maven-3.9.10/myrepo/org/apache/tomcat/embed/tomcat-embed-core/10.1.20/tomcat-embed-core-10.1.20.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+2026-06-16T15:53:13.880+08:00  INFO 24348 --- [tingfeng-agent] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-06-16T15:53:13.891+08:00  INFO 24348 --- [tingfeng-agent] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-16T15:53:13.891+08:00  INFO 24348 --- [tingfeng-agent] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.20]
+2026-06-16T15:53:13.934+08:00  INFO 24348 --- [tingfeng-agent] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-16T15:53:13.934+08:00  INFO 24348 --- [tingfeng-agent] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1032 ms
+2026-06-16T15:53:14.136+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : 启动工具源子进程: name=mysql-mcp, mainClass=com.tingfeng.agent.mcp.MySqlMcpServer
+2026-06-16T15:53:14.149+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.m.c.t.stdio.StdioMcpTransport        : Starting process: [D:\JDK\bin\java.exe, -cp, D:\IDEA\JAVA PROJECT\tingfeng\tingfeng-agent\target\classes;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-web\3.2.5\spring-boot-starter-web-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter\3.2.5\spring-boot-starter-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot\3.2.5\spring-boot-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-autoconfigure\3.2.5\spring-boot-autoconfigure-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-logging\3.2.5\spring-boot-starter-logging-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-classic\1.4.14\logback-classic-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-core\1.4.14\logback-core-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\jul-to-slf4j\2.0.13\jul-to-slf4j-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-core\6.1.6\spring-core-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jcl\6.1.6\spring-jcl-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-json\3.2.5\spring-boot-starter-json-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.4\jackson-datatype-jdk8-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.4\jackson-datatype-jsr310-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.4\jackson-module-parameter-names-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-tomcat\3.2.5\spring-boot-starter-tomcat-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-core\10.1.20\tomcat-embed-core-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-el\10.1.20\tomcat-embed-el-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.20\tomcat-embed-websocket-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-web\6.1.6\spring-web-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-beans\6.1.6\spring-beans-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-observation\1.12.5\micrometer-observation-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-commons\1.12.5\micrometer-commons-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-webmvc\6.1.6\spring-webmvc-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-aop\6.1.6\spring-aop-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context\6.1.6\spring-context-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-expression\6.1.6\spring-expression-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-data-redis\3.2.5\spring-boot-starter-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\lettuce\lettuce-core\6.3.2.RELEASE\lettuce-core-6.3.2.RELEASE.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-common\4.1.109.Final\netty-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-handler\4.1.109.Final\netty-handler-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-resolver\4.1.109.Final\netty-resolver-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-buffer\4.1.109.Final\netty-buffer-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport-native-unix-common\4.1.109.Final\netty-transport-native-unix-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-codec\4.1.109.Final\netty-codec-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport\4.1.109.Final\netty-transport-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\projectreactor\reactor-core\3.6.5\reactor-core-3.6.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-redis\3.2.5\spring-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-keyvalue\3.2.5\spring-data-keyvalue-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-commons\3.2.5\spring-data-commons-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-tx\6.1.6\spring-tx-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-oxm\6.1.6\spring-oxm-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context-support\6.1.6\spring-context-support-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j\1.15.1\langchain4j-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-core\1.15.1\langchain4j-core-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jspecify\jspecify\1.0.0\jspecify-1.0.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-annotations\2.15.4\jackson-annotations-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-core\2.15.4\jackson-core-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-databind\2.15.4\jackson-databind-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\opennlp\opennlp-tools\2.5.9\opennlp-tools-2.5.9.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\slf4j-api\2.0.13\slf4j-api-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-open-ai\1.15.1\langchain4j-open-ai-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client\1.15.1\langchain4j-http-client-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\knuddels\jtokkit\1.1.0\jtokkit-1.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client-jdk\1.15.1\langchain4j-http-client-jdk-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\github\ben-manes\caffeine\caffeine\3.1.8\caffeine-3.1.8.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\checkerframework\checker-qual\3.37.0\checker-qual-3.37.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\errorprone\error_prone_annotations\2.21.1\error_prone_annotations-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-mcp\1.15.1-beta25\langchain4j-mcp-1.15.1-beta25.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.23\kotlin-stdlib-common-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.9.23\kotlin-stdlib-jdk8-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib\1.9.23\kotlin-stdlib-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\annotations\13.0\annotations-13.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.9.23\kotlin-stdlib-jdk7-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp-sse\4.12.0\okhttp-sse-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-ollama\1.15.1\langchain4j-ollama-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\redis\clients\jedis\5.1.0\jedis-5.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\commons\commons-pool2\2.12.0\commons-pool2-2.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\json\json\20231013\json-20231013.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-jdbc\3.2.5\spring-boot-starter-jdbc-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jdbc\6.1.6\spring-jdbc-6.1.6.jar, com.tingfeng.agent.mcp.MySqlMcpServer]
+2026-06-16T15:53:14.153+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.m.c.t.stdio.StdioMcpTransport        : PID of the started process: 15512
+2026-06-16T15:53:14.442+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.mcp.client.DefaultMcpClient          : MCP server capabilities: {"capabilities":{"tools":{}},"protocolVersion":{"version":"2025-03-26"}}
+2026-06-16T15:53:14.446+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : 启动工具源子进程: name=redis-mcp, mainClass=com.tingfeng.agent.mcp.RedisMcpServer
+2026-06-16T15:53:14.446+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.m.c.t.stdio.StdioMcpTransport        : Starting process: [D:\JDK\bin\java.exe, -cp, D:\IDEA\JAVA PROJECT\tingfeng\tingfeng-agent\target\classes;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-web\3.2.5\spring-boot-starter-web-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter\3.2.5\spring-boot-starter-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot\3.2.5\spring-boot-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-autoconfigure\3.2.5\spring-boot-autoconfigure-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-logging\3.2.5\spring-boot-starter-logging-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-classic\1.4.14\logback-classic-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-core\1.4.14\logback-core-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\jul-to-slf4j\2.0.13\jul-to-slf4j-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-core\6.1.6\spring-core-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jcl\6.1.6\spring-jcl-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-json\3.2.5\spring-boot-starter-json-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.4\jackson-datatype-jdk8-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.4\jackson-datatype-jsr310-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.4\jackson-module-parameter-names-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-tomcat\3.2.5\spring-boot-starter-tomcat-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-core\10.1.20\tomcat-embed-core-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-el\10.1.20\tomcat-embed-el-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.20\tomcat-embed-websocket-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-web\6.1.6\spring-web-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-beans\6.1.6\spring-beans-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-observation\1.12.5\micrometer-observation-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-commons\1.12.5\micrometer-commons-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-webmvc\6.1.6\spring-webmvc-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-aop\6.1.6\spring-aop-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context\6.1.6\spring-context-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-expression\6.1.6\spring-expression-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-data-redis\3.2.5\spring-boot-starter-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\lettuce\lettuce-core\6.3.2.RELEASE\lettuce-core-6.3.2.RELEASE.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-common\4.1.109.Final\netty-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-handler\4.1.109.Final\netty-handler-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-resolver\4.1.109.Final\netty-resolver-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-buffer\4.1.109.Final\netty-buffer-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport-native-unix-common\4.1.109.Final\netty-transport-native-unix-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-codec\4.1.109.Final\netty-codec-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport\4.1.109.Final\netty-transport-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\projectreactor\reactor-core\3.6.5\reactor-core-3.6.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-redis\3.2.5\spring-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-keyvalue\3.2.5\spring-data-keyvalue-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-commons\3.2.5\spring-data-commons-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-tx\6.1.6\spring-tx-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-oxm\6.1.6\spring-oxm-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context-support\6.1.6\spring-context-support-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j\1.15.1\langchain4j-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-core\1.15.1\langchain4j-core-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jspecify\jspecify\1.0.0\jspecify-1.0.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-annotations\2.15.4\jackson-annotations-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-core\2.15.4\jackson-core-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-databind\2.15.4\jackson-databind-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\opennlp\opennlp-tools\2.5.9\opennlp-tools-2.5.9.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\slf4j-api\2.0.13\slf4j-api-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-open-ai\1.15.1\langchain4j-open-ai-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client\1.15.1\langchain4j-http-client-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\knuddels\jtokkit\1.1.0\jtokkit-1.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client-jdk\1.15.1\langchain4j-http-client-jdk-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\github\ben-manes\caffeine\caffeine\3.1.8\caffeine-3.1.8.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\checkerframework\checker-qual\3.37.0\checker-qual-3.37.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\errorprone\error_prone_annotations\2.21.1\error_prone_annotations-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-mcp\1.15.1-beta25\langchain4j-mcp-1.15.1-beta25.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.23\kotlin-stdlib-common-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.9.23\kotlin-stdlib-jdk8-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib\1.9.23\kotlin-stdlib-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\annotations\13.0\annotations-13.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.9.23\kotlin-stdlib-jdk7-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp-sse\4.12.0\okhttp-sse-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-ollama\1.15.1\langchain4j-ollama-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\redis\clients\jedis\5.1.0\jedis-5.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\commons\commons-pool2\2.12.0\commons-pool2-2.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\json\json\20231013\json-20231013.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-jdbc\3.2.5\spring-boot-starter-jdbc-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jdbc\6.1.6\spring-jdbc-6.1.6.jar, com.tingfeng.agent.mcp.RedisMcpServer]
+2026-06-16T15:53:14.448+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.m.c.t.stdio.StdioMcpTransport        : PID of the started process: 24108
+2026-06-16T15:53:14.743+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.mcp.client.DefaultMcpClient          : MCP server capabilities: {"capabilities":{"tools":{}},"protocolVersion":{"version":"2025-03-26"}}
+2026-06-16T15:53:14.743+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : 启动工具源子进程: name=cpu-mcp, mainClass=com.tingfeng.agent.mcp.CpuMcpServer
+2026-06-16T15:53:14.744+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.m.c.t.stdio.StdioMcpTransport        : Starting process: [D:\JDK\bin\java.exe, -cp, D:\IDEA\JAVA PROJECT\tingfeng\tingfeng-agent\target\classes;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-web\3.2.5\spring-boot-starter-web-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter\3.2.5\spring-boot-starter-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot\3.2.5\spring-boot-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-autoconfigure\3.2.5\spring-boot-autoconfigure-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-logging\3.2.5\spring-boot-starter-logging-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-classic\1.4.14\logback-classic-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-core\1.4.14\logback-core-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\jul-to-slf4j\2.0.13\jul-to-slf4j-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-core\6.1.6\spring-core-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jcl\6.1.6\spring-jcl-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-json\3.2.5\spring-boot-starter-json-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.4\jackson-datatype-jdk8-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.4\jackson-datatype-jsr310-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.4\jackson-module-parameter-names-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-tomcat\3.2.5\spring-boot-starter-tomcat-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-core\10.1.20\tomcat-embed-core-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-el\10.1.20\tomcat-embed-el-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.20\tomcat-embed-websocket-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-web\6.1.6\spring-web-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-beans\6.1.6\spring-beans-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-observation\1.12.5\micrometer-observation-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-commons\1.12.5\micrometer-commons-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-webmvc\6.1.6\spring-webmvc-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-aop\6.1.6\spring-aop-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context\6.1.6\spring-context-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-expression\6.1.6\spring-expression-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-data-redis\3.2.5\spring-boot-starter-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\lettuce\lettuce-core\6.3.2.RELEASE\lettuce-core-6.3.2.RELEASE.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-common\4.1.109.Final\netty-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-handler\4.1.109.Final\netty-handler-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-resolver\4.1.109.Final\netty-resolver-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-buffer\4.1.109.Final\netty-buffer-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport-native-unix-common\4.1.109.Final\netty-transport-native-unix-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-codec\4.1.109.Final\netty-codec-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport\4.1.109.Final\netty-transport-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\projectreactor\reactor-core\3.6.5\reactor-core-3.6.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-redis\3.2.5\spring-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-keyvalue\3.2.5\spring-data-keyvalue-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-commons\3.2.5\spring-data-commons-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-tx\6.1.6\spring-tx-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-oxm\6.1.6\spring-oxm-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context-support\6.1.6\spring-context-support-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j\1.15.1\langchain4j-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-core\1.15.1\langchain4j-core-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jspecify\jspecify\1.0.0\jspecify-1.0.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-annotations\2.15.4\jackson-annotations-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-core\2.15.4\jackson-core-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-databind\2.15.4\jackson-databind-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\opennlp\opennlp-tools\2.5.9\opennlp-tools-2.5.9.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\slf4j-api\2.0.13\slf4j-api-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-open-ai\1.15.1\langchain4j-open-ai-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client\1.15.1\langchain4j-http-client-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\knuddels\jtokkit\1.1.0\jtokkit-1.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client-jdk\1.15.1\langchain4j-http-client-jdk-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\github\ben-manes\caffeine\caffeine\3.1.8\caffeine-3.1.8.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\checkerframework\checker-qual\3.37.0\checker-qual-3.37.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\errorprone\error_prone_annotations\2.21.1\error_prone_annotations-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-mcp\1.15.1-beta25\langchain4j-mcp-1.15.1-beta25.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.23\kotlin-stdlib-common-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.9.23\kotlin-stdlib-jdk8-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib\1.9.23\kotlin-stdlib-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\annotations\13.0\annotations-13.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.9.23\kotlin-stdlib-jdk7-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp-sse\4.12.0\okhttp-sse-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-ollama\1.15.1\langchain4j-ollama-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\redis\clients\jedis\5.1.0\jedis-5.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\commons\commons-pool2\2.12.0\commons-pool2-2.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\json\json\20231013\json-20231013.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-jdbc\3.2.5\spring-boot-starter-jdbc-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jdbc\6.1.6\spring-jdbc-6.1.6.jar, com.tingfeng.agent.mcp.CpuMcpServer]
+2026-06-16T15:53:14.745+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.m.c.t.stdio.StdioMcpTransport        : PID of the started process: 26768
+2026-06-16T15:53:15.022+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.mcp.client.DefaultMcpClient          : MCP server capabilities: {"capabilities":{"tools":{}},"protocolVersion":{"version":"2025-03-26"}}
+2026-06-16T15:53:15.023+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : 启动工具源子进程: name=snapshot-mcp, mainClass=com.tingfeng.agent.mcp.SnapshotMcpServer
+2026-06-16T15:53:15.023+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.m.c.t.stdio.StdioMcpTransport        : Starting process: [D:\JDK\bin\java.exe, -cp, D:\IDEA\JAVA PROJECT\tingfeng\tingfeng-agent\target\classes;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-web\3.2.5\spring-boot-starter-web-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter\3.2.5\spring-boot-starter-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot\3.2.5\spring-boot-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-autoconfigure\3.2.5\spring-boot-autoconfigure-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-logging\3.2.5\spring-boot-starter-logging-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-classic\1.4.14\logback-classic-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\ch\qos\logback\logback-core\1.4.14\logback-core-1.4.14.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-to-slf4j\2.21.1\log4j-to-slf4j-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\logging\log4j\log4j-api\2.21.1\log4j-api-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\jul-to-slf4j\2.0.13\jul-to-slf4j-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\jakarta\annotation\jakarta.annotation-api\2.1.1\jakarta.annotation-api-2.1.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-core\6.1.6\spring-core-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jcl\6.1.6\spring-jcl-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\yaml\snakeyaml\2.2\snakeyaml-2.2.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-json\3.2.5\spring-boot-starter-json-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jdk8\2.15.4\jackson-datatype-jdk8-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\datatype\jackson-datatype-jsr310\2.15.4\jackson-datatype-jsr310-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\module\jackson-module-parameter-names\2.15.4\jackson-module-parameter-names-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-tomcat\3.2.5\spring-boot-starter-tomcat-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-core\10.1.20\tomcat-embed-core-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-el\10.1.20\tomcat-embed-el-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\tomcat\embed\tomcat-embed-websocket\10.1.20\tomcat-embed-websocket-10.1.20.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-web\6.1.6\spring-web-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-beans\6.1.6\spring-beans-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-observation\1.12.5\micrometer-observation-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\micrometer\micrometer-commons\1.12.5\micrometer-commons-1.12.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-webmvc\6.1.6\spring-webmvc-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-aop\6.1.6\spring-aop-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context\6.1.6\spring-context-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-expression\6.1.6\spring-expression-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-data-redis\3.2.5\spring-boot-starter-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\lettuce\lettuce-core\6.3.2.RELEASE\lettuce-core-6.3.2.RELEASE.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-common\4.1.109.Final\netty-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-handler\4.1.109.Final\netty-handler-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-resolver\4.1.109.Final\netty-resolver-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-buffer\4.1.109.Final\netty-buffer-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport-native-unix-common\4.1.109.Final\netty-transport-native-unix-common-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-codec\4.1.109.Final\netty-codec-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\netty\netty-transport\4.1.109.Final\netty-transport-4.1.109.Final.jar;D:\Maven\apache-maven-3.9.10\myrepo\io\projectreactor\reactor-core\3.6.5\reactor-core-3.6.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\reactivestreams\reactive-streams\1.0.4\reactive-streams-1.0.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-redis\3.2.5\spring-data-redis-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-keyvalue\3.2.5\spring-data-keyvalue-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\data\spring-data-commons\3.2.5\spring-data-commons-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-tx\6.1.6\spring-tx-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-oxm\6.1.6\spring-oxm-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-context-support\6.1.6\spring-context-support-6.1.6.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j\1.15.1\langchain4j-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-core\1.15.1\langchain4j-core-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jspecify\jspecify\1.0.0\jspecify-1.0.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-annotations\2.15.4\jackson-annotations-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-core\2.15.4\jackson-core-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\fasterxml\jackson\core\jackson-databind\2.15.4\jackson-databind-2.15.4.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\opennlp\opennlp-tools\2.5.9\opennlp-tools-2.5.9.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\slf4j\slf4j-api\2.0.13\slf4j-api-2.0.13.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-open-ai\1.15.1\langchain4j-open-ai-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client\1.15.1\langchain4j-http-client-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\knuddels\jtokkit\1.1.0\jtokkit-1.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-http-client-jdk\1.15.1\langchain4j-http-client-jdk-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\github\ben-manes\caffeine\caffeine\3.1.8\caffeine-3.1.8.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\checkerframework\checker-qual\3.37.0\checker-qual-3.37.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\errorprone\error_prone_annotations\2.21.1\error_prone_annotations-2.21.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-mcp\1.15.1-beta25\langchain4j-mcp-1.15.1-beta25.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp\4.12.0\okhttp-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio\3.6.0\okio-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okio\okio-jvm\3.6.0\okio-jvm-3.6.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-common\1.9.23\kotlin-stdlib-common-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk8\1.9.23\kotlin-stdlib-jdk8-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib\1.9.23\kotlin-stdlib-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\annotations\13.0\annotations-13.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\jetbrains\kotlin\kotlin-stdlib-jdk7\1.9.23\kotlin-stdlib-jdk7-1.9.23.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\squareup\okhttp3\okhttp-sse\4.12.0\okhttp-sse-4.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\dev\langchain4j\langchain4j-ollama\1.15.1\langchain4j-ollama-1.15.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\mysql\mysql-connector-j\8.3.0\mysql-connector-j-8.3.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\redis\clients\jedis\5.1.0\jedis-5.1.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\apache\commons\commons-pool2\2.12.0\commons-pool2-2.12.0.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\json\json\20231013\json-20231013.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\google\code\gson\gson\2.10.1\gson-2.10.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\boot\spring-boot-starter-jdbc\3.2.5\spring-boot-starter-jdbc-3.2.5.jar;D:\Maven\apache-maven-3.9.10\myrepo\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;D:\Maven\apache-maven-3.9.10\myrepo\org\springframework\spring-jdbc\6.1.6\spring-jdbc-6.1.6.jar, com.tingfeng.agent.mcp.SnapshotMcpServer]
+2026-06-16T15:53:15.025+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.m.c.t.stdio.StdioMcpTransport        : PID of the started process: 26944
+2026-06-16T15:53:15.292+08:00 DEBUG 24348 --- [tingfeng-agent] [           main] d.l.mcp.client.DefaultMcpClient          : MCP server capabilities: {"capabilities":{"resources":{},"tools":{}},"protocolVersion":{"version":"2025-03-26"}}
+2026-06-16T15:53:15.294+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : mysql-Executor 已重建, clients=1
+2026-06-16T15:53:15.294+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : redis-Executor 已重建, clients=1
+2026-06-16T15:53:15.294+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : cpu-Executor 已重建, clients=1
+2026-06-16T15:53:15.294+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : snapshot-Executor 已重建, clients=1
+2026-06-16T15:53:15.295+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : full-Executor 已重建, clients=4
+2026-06-16T15:53:15.295+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : Planner 已重建, activeTags=[mysql, redis, cpu, snapshot]
+2026-06-16T15:53:15.295+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.config.ToolRegistryManager     : ToolRegistryManager 初始化完成: clients=4, activeTags=[mysql, redis, cpu, snapshot]
+2026-06-16T15:53:15.307+08:00  INFO 24348 --- [tingfeng-agent] [           main] com.tingfeng.agent.service.RagService    : 从 data\rag_store.json 恢复向量知识库 (免重新向量化)
+2026-06-16T15:53:15.366+08:00  INFO 24348 --- [tingfeng-agent] [           main] com.tingfeng.agent.service.RagService    : 已恢复向量知识库
+2026-06-16T15:53:15.388+08:00  INFO 24348 --- [tingfeng-agent] [           main] com.zaxxer.hikari.HikariDataSource       : TingFengPersist - Starting...
+2026-06-16T15:53:15.524+08:00  INFO 24348 --- [tingfeng-agent] [           main] com.zaxxer.hikari.pool.HikariPool        : TingFengPersist - Added connection com.mysql.cj.jdbc.ConnectionImpl@261f359f
+2026-06-16T15:53:15.525+08:00  INFO 24348 --- [tingfeng-agent] [           main] com.zaxxer.hikari.HikariDataSource       : TingFengPersist - Start completed.
+2026-06-16T15:53:15.613+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.persist.SnapshotRepository     : 探针快照表 tingfeng_snapshot 已就绪
+2026-06-16T15:53:15.672+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.persist.JvmMetricsRepository   : JVM 指标表 tingfeng_jvm_metrics 已就绪
+2026-06-16T15:53:15.751+08:00  INFO 24348 --- [tingfeng-agent] [           main] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page: class path resource [static/index.html]
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by io.netty.util.internal.PlatformDependent0$4 (file:/D:/Maven/apache-maven-3.9.10/myrepo/io/netty/netty-common/4.1.109.Final/netty-common-4.1.109.Final.jar)
+WARNING: Please consider reporting this to the maintainers of class io.netty.util.internal.PlatformDependent0$4
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+2026-06-16T15:53:16.291+08:00  INFO 24348 --- [tingfeng-agent] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path ''
+2026-06-16T15:53:16.295+08:00  INFO 24348 --- [tingfeng-agent] [           main] c.t.agent.TingFengAgentApplication       : Started TingFengAgentApplication in 3.768 seconds (process running for 4.343)
+2026-06-16T15:53:19.393+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-06-16T15:53:19.393+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-06-16T15:53:19.394+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-06-16T15:53:19.447+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-1] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.19%, heap=79MB, threads=70
+2026-06-16T15:53:34.380+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-2] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.37%, heap=81MB, threads=72
+2026-06-16T15:53:49.343+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-3] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.37%, heap=81MB, threads=72
+2026-06-16T15:54:04.345+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-5] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.3%, heap=81MB, threads=72
+2026-06-16T15:54:19.357+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-6] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.38%, heap=81MB, threads=71
+2026-06-16T15:54:22.185+08:00  WARN 24348 --- [tingfeng-agent] [pool-4-thread-1] dev.langchain4j.internal.RetryUtils      : A retriable exception occurred. Remaining retries: 2 of 2
+
+dev.langchain4j.exception.InternalServerException: {"error":"llama-server process has terminated: exit status 0xc0000409: The system detected an overrun of a stack-based buffer in this application. This overrun could potentially allow a malicious user to gain control of this application.: CUDA error: shared object initialization failed"}
+	at dev.langchain4j.internal.ExceptionMapper$DefaultExceptionMapper.mapHttpStatusCode(ExceptionMapper.java:56) ~[langchain4j-core-1.15.1.jar:na]
+	at dev.langchain4j.internal.ExceptionMapper$DefaultExceptionMapper.mapException(ExceptionMapper.java:44) ~[langchain4j-core-1.15.1.jar:na]
+	at dev.langchain4j.internal.ExceptionMapper.withExceptionMapper(ExceptionMapper.java:31) ~[langchain4j-core-1.15.1.jar:na]
+	at dev.langchain4j.internal.RetryUtils.lambda$withRetryMappingExceptions$1(RetryUtils.java:326) ~[langchain4j-core-1.15.1.jar:na]
+	at dev.langchain4j.internal.RetryUtils$RetryPolicy.withRetry(RetryUtils.java:204) ~[langchain4j-core-1.15.1.jar:na]
+	at dev.langchain4j.internal.RetryUtils.withRetry(RetryUtils.java:263) ~[langchain4j-core-1.15.1.jar:na]
+	at dev.langchain4j.internal.RetryUtils.withRetryMappingExceptions(RetryUtils.java:326) ~[langchain4j-core-1.15.1.jar:na]
+	at dev.langchain4j.internal.RetryUtils.withRetryMappingExceptions(RetryUtils.java:309) ~[langchain4j-core-1.15.1.jar:na]
+	at dev.langchain4j.model.ollama.OllamaEmbeddingModel.embedAll(OllamaEmbeddingModel.java:62) ~[langchain4j-ollama-1.15.1.jar:na]
+	at dev.langchain4j.model.embedding.EmbeddingModel.embed(EmbeddingModel.java:36) ~[langchain4j-core-1.15.1.jar:na]
+	at dev.langchain4j.model.embedding.EmbeddingModel.embed(EmbeddingModel.java:26) ~[langchain4j-core-1.15.1.jar:na]
+	at com.tingfeng.agent.service.RagService.search(RagService.java:74) ~[classes/:na]
+	at com.tingfeng.agent.service.AgentWorkflowService.buildRagContext(AgentWorkflowService.java:252) ~[classes/:na]
+	at com.tingfeng.agent.service.AgentWorkflowService.planWithRag(AgentWorkflowService.java:201) ~[classes/:na]
+	at com.tingfeng.agent.service.AgentWorkflowService.diagnoseStream(AgentWorkflowService.java:97) ~[classes/:na]
+	at com.tingfeng.agent.controller.DiagnoseController.lambda$stream$0(DiagnoseController.java:34) ~[classes/:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1095) ~[na:na]
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:619) ~[na:na]
+	at java.base/java.lang.Thread.run(Thread.java:1447) ~[na:na]
+Caused by: dev.langchain4j.exception.HttpException: {"error":"llama-server process has terminated: exit status 0xc0000409: The system detected an overrun of a stack-based buffer in this application. This overrun could potentially allow a malicious user to gain control of this application.: CUDA error: shared object initialization failed"}
+	at dev.langchain4j.http.client.jdk.JdkHttpClient.execute(JdkHttpClient.java:54) ~[langchain4j-http-client-jdk-1.15.1.jar:na]
+	at dev.langchain4j.model.ollama.OllamaClient.embed(OllamaClient.java:269) ~[langchain4j-ollama-1.15.1.jar:na]
+	at dev.langchain4j.model.ollama.OllamaEmbeddingModel.lambda$embedAll$0(OllamaEmbeddingModel.java:62) ~[langchain4j-ollama-1.15.1.jar:na]
+	at dev.langchain4j.internal.ExceptionMapper.withExceptionMapper(ExceptionMapper.java:29) ~[langchain4j-core-1.15.1.jar:na]
+	... 16 common frames omitted
+
+2026-06-16T15:54:26.597+08:00  INFO 24348 --- [tingfeng-agent] [pool-4-thread-1] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个运维诊断规划师。根据用户问题，输出结构化的排查计划。\n\n如果用户问题与IT运维、Redis、MySQL、服务器诊断无关（比如闲聊、育儿、医疗等），返回空数组 [].\n\n每条排查任务由 task (任务描述) 和 tags (工具标签列表) 组成。\n每个任务通常只有一个标签，不同工具的问题拆成独立步骤。\n\n当前可用的标签及对应工具领域：\n  \"mysql\" → MySQL 诊断（连接数、慢查询、Buffer Pool 命中率、锁等待、主从复制、当前查询等）\n  \"redis\" → Redis 诊断（内存使用、命中率、慢查询、大Key扫描等）\n  \"cpu\" → CPU与JVM诊断（CPU负载、JVM内存/线程/死锁、GC统计、磁盘空间等）\n  \"snapshot\" → 探针快照诊断（方法调用历史、异常记录、慢调用、响应时间等）\n\n规则：\n1. 只有与运维相关的问题才生成排查计划\n2. task 描述要具体，指明要检查什么指标\n3. 不超过5个步骤\n4. 严格返回 JSON 数组格式，只输出 JSON，不要其他内容\n5. 只能使用上面列出的标签，不要编造标签名\n\n输出格式示例：\n[\n  {\"task\":\"...\",\"tags\":[\"mysql\"]},\n  {\"task\":\"...\",\"tags\":[\"redis\"]},\n  {\"task\":\"...\",\"tags\":[\"cpu\"]}\n]\n"
+  }, {
+    "role" : "user",
+    "content" : "[参考知识]\n1. JVM 启动后性能逐渐下降分析\n诊断: 1) cpu_info 观察 CPU 使用趋势; 2) java_memory 看堆是否持续增长; 3) java_threads 看线程数是否增长(线程泄漏); 4) jstat -gcutil 看 GC 频率变化; 5) 检查定时任务是否积累未关闭资源. 常见根因: 1) 内存泄漏致 FGC 越来越频繁; 2) 线程泄漏致上下文切换开销增大; 3) 连接池耗尽致请求排队; 4) 缓存无过期时间致无限增长; 5) 磁盘 IO 饱和. 预防: 缓存设 TTL、连接池设 leakDetectionThreshold、定期资源巡检.\n2. JVM 堆内存使用率过高排查与调优\n诊断: 1) 使用 java_memory 工具查看堆已用/最大值、系统空闲内存; 2) 堆使用率 > 85% 时 jmap -histo:live <pid> 查看对象分布; 3) jstat -gcutil <pid> 1000 观察各代变化趋势; 4) 如果 Full GC 后堆使用率不下降 → 内存泄漏, jmap -dump 导出 heap dump 用 MAT 分析 Dominator Tree; 5) 检查静态集合、ThreadLocal 未清理、连接池未关闭. 调优: 增大 -Xmx、修复泄漏、水平扩容. 监控: 堆使用率 > 80% 告警.\n3. Java 进程假死 (Hang) 排查思路\n排查: 1) cpu_info 检查 CPU: CPU 很低但进程不响应 → 可能是死锁或阻塞等待; 2) java_threads 检查死锁, 多次 jstack dump 对比找出一直 BLOCKED/WAITING 的线程; 3) 检查数据库连接池是否所有连接都在执行慢查询; 4) 检查 Redis/MQ/HTTP 下游是否超时. 常见原因: 1) 连接池耗尽 (所有线程 waiting for connection); 2) Redis 无超时设置导致无限等待; 3) 日志文件写满磁盘导致写阻塞. 紧急: 重启; 预防: 设置超时、使用 tryLock.\n\n\n为以下问题制定排查计划：\n帮我检查一下当前JVM情况"
+  } ],
+  "stream" : false
+}
+
+2026-06-16T15:54:29.398+08:00  INFO 24348 --- [tingfeng-agent] [pool-4-thread-1] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:27 GMT], [eo-cache-status: MISS], [eo-log-uuid: 3125687041324383153], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: d42b11aa8c069bd661a0f0d4d3e375cf]
+- body: {"id":"fef47a1f-efe9-4d70-afc1-5554036c2df3","object":"chat.completion","created":1781596467,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"[\n  {\"task\":\"使用 cpu_info 查看当前 CPU 使用率趋势，判断是否存在 CPU 负载异常高或低的情况\",\"tags\":[\"cpu\"]},\n  {\"task\":\"使用 java_memory 查看 JVM 堆已用内存、最大值和系统空闲内存，评估堆使用率是否过高（如 >85%）\",\"tags\":[\"cpu\"]},\n  {\"task\":\"使用 jstat -gcutil 观察各代 GC 频率和耗时，特别关注 Full GC 次数及堆内存是否在 GC 后仍不下降\",\"tags\":[\"cpu\"]},\n  {\"task\":\"使用 java_threads 检查活跃线程数、死锁和处于 BLOCKED/WAITING 状态的线程，判断是否存在线程泄漏或死锁\",\"tags\":[\"cpu\"]}\n]"},"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":838,"completion_tokens":163,"total_tokens":1001,"prompt_tokens_details":{"cached_tokens":0},"prompt_cache_hit_tokens":0,"prompt_cache_miss_tokens":838},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:29.417+08:00  INFO 24348 --- [tingfeng-agent] [pool-4-thread-1] c.t.agent.service.AgentWorkflowService   : Planner 原始输出: [
+  {"task":"使用 cpu_info 查看当前 CPU 使用率趋势，判断是否存在 CPU 负载异常高或低的情况","tags":["cpu"]},
+  {"task":"使用 java_memory 查看 JVM 堆已用内存、最大值和系统空闲内存，评估堆使用率是否过高（如 >85%）","tags":["cpu"]},
+  {"task":"使用 jstat -gcutil 观察各代 GC 频率和耗时，特别关注 Full GC 次数及堆内存是否在 GC 后仍不下降","tags":["cpu"]},
+  {"task":"使用 java_threads 检查活跃线程数、死锁和处于 BLOCKED/WAITING 状态的线程，判断是否存在线程泄漏或死锁","tags":["cpu"]}
+]
+2026-06-16T15:54:29.434+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-3] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。\n\n规则：\n1. 只执行当前分配的这一个任务，不要发散\n2. 用工具获取真实数据，不要编造\n3. 输出一段排查笔记，格式：\n   ### [任务名称]\n   - 关键指标: <具体数值>\n   - 状态评估: <基于数据的状态>\n   - 需要关注: <异常点或风险点, 无则写\"无\">\n4. 工具调用失败时在笔记中如实记录错误\n5. 如果没有可用工具，直接说明\"当前无可用的诊断工具\"并总结\n"
+  }, {
+    "role" : "user",
+    "content" : "使用 jstat -gcutil 观察各代 GC 频率和耗时，特别关注 Full GC 次数及堆内存是否在 GC 后仍不下降"
+  } ],
+  "stream" : false,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "cpu_info",
+      "description" : "获取本地 JVM 进程 CPU 负载和系统 CPU 指标。包括系统整体 CPU 使用率、JVM 进程 CPU 使用率、可用处理器核心数。用于诊断 CPU 瓶颈。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_memory",
+      "description" : "获取 JVM 堆内存使用详情。包括堆内存已用/最大、非堆内存已用、系统空闲物理内存。用于诊断内存泄漏或 OOM 风险。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_threads",
+      "description" : "获取 JVM 线程统计信息和死锁检测。包括当前线程数、峰值线程数、守护线程数、死锁线程列表。用于诊断线程泄漏或死锁。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "system_info",
+      "description" : "获取操作系统和 JVM 基本信息。包括操作系统名称/版本、Java 版本、JVM 启动时长。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "gc_stats",
+      "description" : "获取 JVM 垃圾回收统计信息。包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "disk_usage",
+      "description" : "获取磁盘空间使用情况，列出所有分区(盘符)。包括总空间、已用、剩余空间及使用率。用于排查'磁盘满导致写失败'类问题。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2026-06-16T15:54:29.434+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-2] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。\n\n规则：\n1. 只执行当前分配的这一个任务，不要发散\n2. 用工具获取真实数据，不要编造\n3. 输出一段排查笔记，格式：\n   ### [任务名称]\n   - 关键指标: <具体数值>\n   - 状态评估: <基于数据的状态>\n   - 需要关注: <异常点或风险点, 无则写\"无\">\n4. 工具调用失败时在笔记中如实记录错误\n5. 如果没有可用工具，直接说明\"当前无可用的诊断工具\"并总结\n"
+  }, {
+    "role" : "user",
+    "content" : "使用 java_memory 查看 JVM 堆已用内存、最大值和系统空闲内存，评估堆使用率是否过高（如 >85%）"
+  } ],
+  "stream" : false,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "cpu_info",
+      "description" : "获取本地 JVM 进程 CPU 负载和系统 CPU 指标。包括系统整体 CPU 使用率、JVM 进程 CPU 使用率、可用处理器核心数。用于诊断 CPU 瓶颈。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_memory",
+      "description" : "获取 JVM 堆内存使用详情。包括堆内存已用/最大、非堆内存已用、系统空闲物理内存。用于诊断内存泄漏或 OOM 风险。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_threads",
+      "description" : "获取 JVM 线程统计信息和死锁检测。包括当前线程数、峰值线程数、守护线程数、死锁线程列表。用于诊断线程泄漏或死锁。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "system_info",
+      "description" : "获取操作系统和 JVM 基本信息。包括操作系统名称/版本、Java 版本、JVM 启动时长。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "gc_stats",
+      "description" : "获取 JVM 垃圾回收统计信息。包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "disk_usage",
+      "description" : "获取磁盘空间使用情况，列出所有分区(盘符)。包括总空间、已用、剩余空间及使用率。用于排查'磁盘满导致写失败'类问题。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2026-06-16T15:54:29.435+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-1] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。\n\n规则：\n1. 只执行当前分配的这一个任务，不要发散\n2. 用工具获取真实数据，不要编造\n3. 输出一段排查笔记，格式：\n   ### [任务名称]\n   - 关键指标: <具体数值>\n   - 状态评估: <基于数据的状态>\n   - 需要关注: <异常点或风险点, 无则写\"无\">\n4. 工具调用失败时在笔记中如实记录错误\n5. 如果没有可用工具，直接说明\"当前无可用的诊断工具\"并总结\n"
+  }, {
+    "role" : "user",
+    "content" : "使用 cpu_info 查看当前 CPU 使用率趋势，判断是否存在 CPU 负载异常高或低的情况"
+  } ],
+  "stream" : false,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "cpu_info",
+      "description" : "获取本地 JVM 进程 CPU 负载和系统 CPU 指标。包括系统整体 CPU 使用率、JVM 进程 CPU 使用率、可用处理器核心数。用于诊断 CPU 瓶颈。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_memory",
+      "description" : "获取 JVM 堆内存使用详情。包括堆内存已用/最大、非堆内存已用、系统空闲物理内存。用于诊断内存泄漏或 OOM 风险。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_threads",
+      "description" : "获取 JVM 线程统计信息和死锁检测。包括当前线程数、峰值线程数、守护线程数、死锁线程列表。用于诊断线程泄漏或死锁。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "system_info",
+      "description" : "获取操作系统和 JVM 基本信息。包括操作系统名称/版本、Java 版本、JVM 启动时长。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "gc_stats",
+      "description" : "获取 JVM 垃圾回收统计信息。包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "disk_usage",
+      "description" : "获取磁盘空间使用情况，列出所有分区(盘符)。包括总空间、已用、剩余空间及使用率。用于排查'磁盘满导致写失败'类问题。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2026-06-16T15:54:29.435+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-4] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。\n\n规则：\n1. 只执行当前分配的这一个任务，不要发散\n2. 用工具获取真实数据，不要编造\n3. 输出一段排查笔记，格式：\n   ### [任务名称]\n   - 关键指标: <具体数值>\n   - 状态评估: <基于数据的状态>\n   - 需要关注: <异常点或风险点, 无则写\"无\">\n4. 工具调用失败时在笔记中如实记录错误\n5. 如果没有可用工具，直接说明\"当前无可用的诊断工具\"并总结\n"
+  }, {
+    "role" : "user",
+    "content" : "使用 java_threads 检查活跃线程数、死锁和处于 BLOCKED/WAITING 状态的线程，判断是否存在线程泄漏或死锁"
+  } ],
+  "stream" : false,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "cpu_info",
+      "description" : "获取本地 JVM 进程 CPU 负载和系统 CPU 指标。包括系统整体 CPU 使用率、JVM 进程 CPU 使用率、可用处理器核心数。用于诊断 CPU 瓶颈。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_memory",
+      "description" : "获取 JVM 堆内存使用详情。包括堆内存已用/最大、非堆内存已用、系统空闲物理内存。用于诊断内存泄漏或 OOM 风险。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_threads",
+      "description" : "获取 JVM 线程统计信息和死锁检测。包括当前线程数、峰值线程数、守护线程数、死锁线程列表。用于诊断线程泄漏或死锁。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "system_info",
+      "description" : "获取操作系统和 JVM 基本信息。包括操作系统名称/版本、Java 版本、JVM 启动时长。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "gc_stats",
+      "description" : "获取 JVM 垃圾回收统计信息。包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "disk_usage",
+      "description" : "获取磁盘空间使用情况，列出所有分区(盘符)。包括总空间、已用、剩余空间及使用率。用于排查'磁盘满导致写失败'类问题。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2026-06-16T15:54:30.443+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-2] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:29 GMT], [eo-cache-status: MISS], [eo-log-uuid: 4405327507549849670], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: d9306d9cb57157bd453c193fd0ce4c19]
+- body: {"id":"eb678dc7-e996-4a4f-a1bb-2b12899ad4e1","object":"chat.completion","created":1781596470,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"","tool_calls":[{"index":0,"id":"call_00_W7OVNvqXFDtIgIwFuOyW9428","type":"function","function":{"name":"java_memory","arguments":"{}"}}]},"logprobs":null,"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":803,"completion_tokens":28,"total_tokens":831,"prompt_tokens_details":{"cached_tokens":0},"prompt_cache_hit_tokens":0,"prompt_cache_miss_tokens":803},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:30.456+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-2] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。\n\n规则：\n1. 只执行当前分配的这一个任务，不要发散\n2. 用工具获取真实数据，不要编造\n3. 输出一段排查笔记，格式：\n   ### [任务名称]\n   - 关键指标: <具体数值>\n   - 状态评估: <基于数据的状态>\n   - 需要关注: <异常点或风险点, 无则写\"无\">\n4. 工具调用失败时在笔记中如实记录错误\n5. 如果没有可用工具，直接说明\"当前无可用的诊断工具\"并总结\n"
+  }, {
+    "role" : "user",
+    "content" : "使用 java_memory 查看 JVM 堆已用内存、最大值和系统空闲内存，评估堆使用率是否过高（如 >85%）"
+  }, {
+    "role" : "assistant",
+    "tool_calls" : [ {
+      "id" : "call_00_W7OVNvqXFDtIgIwFuOyW9428",
+      "type" : "function",
+      "function" : {
+        "name" : "java_memory",
+        "arguments" : "{}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_00_W7OVNvqXFDtIgIwFuOyW9428",
+    "content" : "=== JVM 内存诊断 ===\n\n暂无宿主 JVM 数据。"
+  } ],
+  "stream" : false,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "cpu_info",
+      "description" : "获取本地 JVM 进程 CPU 负载和系统 CPU 指标。包括系统整体 CPU 使用率、JVM 进程 CPU 使用率、可用处理器核心数。用于诊断 CPU 瓶颈。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_memory",
+      "description" : "获取 JVM 堆内存使用详情。包括堆内存已用/最大、非堆内存已用、系统空闲物理内存。用于诊断内存泄漏或 OOM 风险。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_threads",
+      "description" : "获取 JVM 线程统计信息和死锁检测。包括当前线程数、峰值线程数、守护线程数、死锁线程列表。用于诊断线程泄漏或死锁。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "system_info",
+      "description" : "获取操作系统和 JVM 基本信息。包括操作系统名称/版本、Java 版本、JVM 启动时长。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "gc_stats",
+      "description" : "获取 JVM 垃圾回收统计信息。包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "disk_usage",
+      "description" : "获取磁盘空间使用情况，列出所有分区(盘符)。包括总空间、已用、剩余空间及使用率。用于排查'磁盘满导致写失败'类问题。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2026-06-16T15:54:30.536+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-1] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:29 GMT], [eo-cache-status: MISS], [eo-log-uuid: 12966818015025587538], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: baabc6c9917adb45309ca3106ef7694b]
+- body: {"id":"27d3bcb9-772c-4df7-bb9c-50c70128300e","object":"chat.completion","created":1781596470,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"好的，我使用 `cpu_info` 工具获取当前 CPU 使用率数据。","tool_calls":[{"index":0,"id":"call_00_mRO7zDeCNPOFt3Fe5c295578","type":"function","function":{"name":"cpu_info","arguments":"{}"}}]},"logprobs":null,"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":794,"completion_tokens":45,"total_tokens":839,"prompt_tokens_details":{"cached_tokens":0},"prompt_cache_hit_tokens":0,"prompt_cache_miss_tokens":794},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:30.539+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-1] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。\n\n规则：\n1. 只执行当前分配的这一个任务，不要发散\n2. 用工具获取真实数据，不要编造\n3. 输出一段排查笔记，格式：\n   ### [任务名称]\n   - 关键指标: <具体数值>\n   - 状态评估: <基于数据的状态>\n   - 需要关注: <异常点或风险点, 无则写\"无\">\n4. 工具调用失败时在笔记中如实记录错误\n5. 如果没有可用工具，直接说明\"当前无可用的诊断工具\"并总结\n"
+  }, {
+    "role" : "user",
+    "content" : "使用 cpu_info 查看当前 CPU 使用率趋势，判断是否存在 CPU 负载异常高或低的情况"
+  }, {
+    "role" : "assistant",
+    "content" : "好的，我使用 `cpu_info` 工具获取当前 CPU 使用率数据。",
+    "tool_calls" : [ {
+      "id" : "call_00_mRO7zDeCNPOFt3Fe5c295578",
+      "type" : "function",
+      "function" : {
+        "name" : "cpu_info",
+        "arguments" : "{}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_00_mRO7zDeCNPOFt3Fe5c295578",
+    "content" : "=== CPU 诊断 ===\n\n暂无宿主 JVM 数据，请确保 tingfeng-starter 已接入。"
+  } ],
+  "stream" : false,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "cpu_info",
+      "description" : "获取本地 JVM 进程 CPU 负载和系统 CPU 指标。包括系统整体 CPU 使用率、JVM 进程 CPU 使用率、可用处理器核心数。用于诊断 CPU 瓶颈。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_memory",
+      "description" : "获取 JVM 堆内存使用详情。包括堆内存已用/最大、非堆内存已用、系统空闲物理内存。用于诊断内存泄漏或 OOM 风险。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_threads",
+      "description" : "获取 JVM 线程统计信息和死锁检测。包括当前线程数、峰值线程数、守护线程数、死锁线程列表。用于诊断线程泄漏或死锁。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "system_info",
+      "description" : "获取操作系统和 JVM 基本信息。包括操作系统名称/版本、Java 版本、JVM 启动时长。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "gc_stats",
+      "description" : "获取 JVM 垃圾回收统计信息。包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "disk_usage",
+      "description" : "获取磁盘空间使用情况，列出所有分区(盘符)。包括总空间、已用、剩余空间及使用率。用于排查'磁盘满导致写失败'类问题。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2026-06-16T15:54:30.698+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-4] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:29 GMT], [eo-cache-status: MISS], [eo-log-uuid: 7656711464889925287], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: 4dc4b9b23547363d1ff053c8c4ac178f]
+- body: {"id":"5d5bf666-ad4d-43b3-b277-da240f9cfcd9","object":"chat.completion","created":1781596470,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"好的，我来使用 `java_threads` 工具获取实时线程数据。","tool_calls":[{"index":0,"id":"call_00_z2cwqlBrbGEXJNzVlDGC9210","type":"function","function":{"name":"java_threads","arguments":"{}"}}]},"logprobs":null,"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":803,"completion_tokens":43,"total_tokens":846,"prompt_tokens_details":{"cached_tokens":0},"prompt_cache_hit_tokens":0,"prompt_cache_miss_tokens":803},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:30.701+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-4] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。\n\n规则：\n1. 只执行当前分配的这一个任务，不要发散\n2. 用工具获取真实数据，不要编造\n3. 输出一段排查笔记，格式：\n   ### [任务名称]\n   - 关键指标: <具体数值>\n   - 状态评估: <基于数据的状态>\n   - 需要关注: <异常点或风险点, 无则写\"无\">\n4. 工具调用失败时在笔记中如实记录错误\n5. 如果没有可用工具，直接说明\"当前无可用的诊断工具\"并总结\n"
+  }, {
+    "role" : "user",
+    "content" : "使用 java_threads 检查活跃线程数、死锁和处于 BLOCKED/WAITING 状态的线程，判断是否存在线程泄漏或死锁"
+  }, {
+    "role" : "assistant",
+    "content" : "好的，我来使用 `java_threads` 工具获取实时线程数据。",
+    "tool_calls" : [ {
+      "id" : "call_00_z2cwqlBrbGEXJNzVlDGC9210",
+      "type" : "function",
+      "function" : {
+        "name" : "java_threads",
+        "arguments" : "{}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_00_z2cwqlBrbGEXJNzVlDGC9210",
+    "content" : "=== JVM 线程诊断 ===\n\n暂无宿主 JVM 数据。"
+  } ],
+  "stream" : false,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "cpu_info",
+      "description" : "获取本地 JVM 进程 CPU 负载和系统 CPU 指标。包括系统整体 CPU 使用率、JVM 进程 CPU 使用率、可用处理器核心数。用于诊断 CPU 瓶颈。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_memory",
+      "description" : "获取 JVM 堆内存使用详情。包括堆内存已用/最大、非堆内存已用、系统空闲物理内存。用于诊断内存泄漏或 OOM 风险。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_threads",
+      "description" : "获取 JVM 线程统计信息和死锁检测。包括当前线程数、峰值线程数、守护线程数、死锁线程列表。用于诊断线程泄漏或死锁。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "system_info",
+      "description" : "获取操作系统和 JVM 基本信息。包括操作系统名称/版本、Java 版本、JVM 启动时长。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "gc_stats",
+      "description" : "获取 JVM 垃圾回收统计信息。包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "disk_usage",
+      "description" : "获取磁盘空间使用情况，列出所有分区(盘符)。包括总空间、已用、剩余空间及使用率。用于排查'磁盘满导致写失败'类问题。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2026-06-16T15:54:30.795+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-3] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:29 GMT], [eo-cache-status: MISS], [eo-log-uuid: 15138448908476117262], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: f40e18d39e12df25c67a2b11ad5d9628]
+- body: {"id":"0dbdb017-18b4-4ebe-a4e3-b367b1429e9e","object":"chat.completion","created":1781596470,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"好的，我先获取 GC 统计信息和堆内存使用情况，用于综合分析 GC 频率、耗时以及 GC 后的内存变化。","tool_calls":[{"index":0,"id":"call_00_bExQ82DkM32XdbxMHPCx9886","type":"function","function":{"name":"gc_stats","arguments":"{}"}},{"index":1,"id":"call_01_rtQrD9lZXSbSXGtV7pbD6668","type":"function","function":{"name":"java_memory","arguments":"{}"}}]},"logprobs":null,"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":805,"completion_tokens":69,"total_tokens":874,"prompt_tokens_details":{"cached_tokens":0},"prompt_cache_hit_tokens":0,"prompt_cache_miss_tokens":805},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:30.797+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-3] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。\n\n规则：\n1. 只执行当前分配的这一个任务，不要发散\n2. 用工具获取真实数据，不要编造\n3. 输出一段排查笔记，格式：\n   ### [任务名称]\n   - 关键指标: <具体数值>\n   - 状态评估: <基于数据的状态>\n   - 需要关注: <异常点或风险点, 无则写\"无\">\n4. 工具调用失败时在笔记中如实记录错误\n5. 如果没有可用工具，直接说明\"当前无可用的诊断工具\"并总结\n"
+  }, {
+    "role" : "user",
+    "content" : "使用 jstat -gcutil 观察各代 GC 频率和耗时，特别关注 Full GC 次数及堆内存是否在 GC 后仍不下降"
+  }, {
+    "role" : "assistant",
+    "content" : "好的，我先获取 GC 统计信息和堆内存使用情况，用于综合分析 GC 频率、耗时以及 GC 后的内存变化。",
+    "tool_calls" : [ {
+      "id" : "call_00_bExQ82DkM32XdbxMHPCx9886",
+      "type" : "function",
+      "function" : {
+        "name" : "gc_stats",
+        "arguments" : "{}"
+      }
+    }, {
+      "id" : "call_01_rtQrD9lZXSbSXGtV7pbD6668",
+      "type" : "function",
+      "function" : {
+        "name" : "java_memory",
+        "arguments" : "{}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_00_bExQ82DkM32XdbxMHPCx9886",
+    "content" : "=== JVM GC 统计 ===\n\n暂无宿主 JVM 数据。"
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_01_rtQrD9lZXSbSXGtV7pbD6668",
+    "content" : "=== JVM 内存诊断 ===\n\n暂无宿主 JVM 数据。"
+  } ],
+  "stream" : false,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "cpu_info",
+      "description" : "获取本地 JVM 进程 CPU 负载和系统 CPU 指标。包括系统整体 CPU 使用率、JVM 进程 CPU 使用率、可用处理器核心数。用于诊断 CPU 瓶颈。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_memory",
+      "description" : "获取 JVM 堆内存使用详情。包括堆内存已用/最大、非堆内存已用、系统空闲物理内存。用于诊断内存泄漏或 OOM 风险。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_threads",
+      "description" : "获取 JVM 线程统计信息和死锁检测。包括当前线程数、峰值线程数、守护线程数、死锁线程列表。用于诊断线程泄漏或死锁。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "system_info",
+      "description" : "获取操作系统和 JVM 基本信息。包括操作系统名称/版本、Java 版本、JVM 启动时长。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "gc_stats",
+      "description" : "获取 JVM 垃圾回收统计信息。包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "disk_usage",
+      "description" : "获取磁盘空间使用情况，列出所有分区(盘符)。包括总空间、已用、剩余空间及使用率。用于排查'磁盘满导致写失败'类问题。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2026-06-16T15:54:31.987+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-3] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:31 GMT], [eo-cache-status: MISS], [eo-log-uuid: 12361363939754050513], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: 86ff60bd0508f6e0b064deb4e2188ba2]
+- body: {"id":"c8c1ef75-6c2a-4898-81f9-baf0ead5f4da","object":"chat.completion","created":1781596471,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"当前环境中没有可获取的 JVM 数据，我再补充查看系统基本信息，确认环境状态。","tool_calls":[{"index":0,"id":"call_00_bs3DnOXeiVaLfoEBJ6ab0157","type":"function","function":{"name":"system_info","arguments":"{}"}}]},"logprobs":null,"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":921,"completion_tokens":47,"total_tokens":968,"prompt_tokens_details":{"cached_tokens":768},"prompt_cache_hit_tokens":768,"prompt_cache_miss_tokens":153},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:31.989+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-3] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个垂直领域运维诊断执行者。使用请求中附带的工具获取真实数据，写成排查笔记。\n\n规则：\n1. 只执行当前分配的这一个任务，不要发散\n2. 用工具获取真实数据，不要编造\n3. 输出一段排查笔记，格式：\n   ### [任务名称]\n   - 关键指标: <具体数值>\n   - 状态评估: <基于数据的状态>\n   - 需要关注: <异常点或风险点, 无则写\"无\">\n4. 工具调用失败时在笔记中如实记录错误\n5. 如果没有可用工具，直接说明\"当前无可用的诊断工具\"并总结\n"
+  }, {
+    "role" : "user",
+    "content" : "使用 jstat -gcutil 观察各代 GC 频率和耗时，特别关注 Full GC 次数及堆内存是否在 GC 后仍不下降"
+  }, {
+    "role" : "assistant",
+    "content" : "好的，我先获取 GC 统计信息和堆内存使用情况，用于综合分析 GC 频率、耗时以及 GC 后的内存变化。",
+    "tool_calls" : [ {
+      "id" : "call_00_bExQ82DkM32XdbxMHPCx9886",
+      "type" : "function",
+      "function" : {
+        "name" : "gc_stats",
+        "arguments" : "{}"
+      }
+    }, {
+      "id" : "call_01_rtQrD9lZXSbSXGtV7pbD6668",
+      "type" : "function",
+      "function" : {
+        "name" : "java_memory",
+        "arguments" : "{}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_00_bExQ82DkM32XdbxMHPCx9886",
+    "content" : "=== JVM GC 统计 ===\n\n暂无宿主 JVM 数据。"
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_01_rtQrD9lZXSbSXGtV7pbD6668",
+    "content" : "=== JVM 内存诊断 ===\n\n暂无宿主 JVM 数据。"
+  }, {
+    "role" : "assistant",
+    "content" : "当前环境中没有可获取的 JVM 数据，我再补充查看系统基本信息，确认环境状态。",
+    "tool_calls" : [ {
+      "id" : "call_00_bs3DnOXeiVaLfoEBJ6ab0157",
+      "type" : "function",
+      "function" : {
+        "name" : "system_info",
+        "arguments" : "{}"
+      }
+    } ]
+  }, {
+    "role" : "tool",
+    "tool_call_id" : "call_00_bs3DnOXeiVaLfoEBJ6ab0157",
+    "content" : "=== 系统信息 ===\n\n  操作系统: Windows 11 10.0\n  系统架构: amd64\n  Java 版本: 24.0.1\n  Java 厂商: Oracle Corporation\n"
+  } ],
+  "stream" : false,
+  "tools" : [ {
+    "type" : "function",
+    "function" : {
+      "name" : "cpu_info",
+      "description" : "获取本地 JVM 进程 CPU 负载和系统 CPU 指标。包括系统整体 CPU 使用率、JVM 进程 CPU 使用率、可用处理器核心数。用于诊断 CPU 瓶颈。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_memory",
+      "description" : "获取 JVM 堆内存使用详情。包括堆内存已用/最大、非堆内存已用、系统空闲物理内存。用于诊断内存泄漏或 OOM 风险。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "java_threads",
+      "description" : "获取 JVM 线程统计信息和死锁检测。包括当前线程数、峰值线程数、守护线程数、死锁线程列表。用于诊断线程泄漏或死锁。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "system_info",
+      "description" : "获取操作系统和 JVM 基本信息。包括操作系统名称/版本、Java 版本、JVM 启动时长。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "gc_stats",
+      "description" : "获取 JVM 垃圾回收统计信息。包括各 GC 收集器的名称、回收次数、总耗时、上次 GC 耗时。GC 频繁或耗时长是导致应用卡顿的核心原因之一。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  }, {
+    "type" : "function",
+    "function" : {
+      "name" : "disk_usage",
+      "description" : "获取磁盘空间使用情况，列出所有分区(盘符)。包括总空间、已用、剩余空间及使用率。用于排查'磁盘满导致写失败'类问题。",
+      "parameters" : {
+        "type" : "object",
+        "properties" : { },
+        "required" : [ ]
+      }
+    }
+  } ]
+}
+
+2026-06-16T15:54:32.292+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-2] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:30 GMT], [eo-cache-status: MISS], [eo-log-uuid: 17818685221570509130], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: d0d4243a9f343bfc72fd297651e80f1d]
+- body: {"id":"5ff904c5-5e4e-42a0-b88a-ee90640834cf","object":"chat.completion","created":1781596470,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"### JVM 堆内存使用诊断\n- **关键指标**: 堆内存已用/最大值 — 无数据；系统空闲物理内存 — 无数据\n- **状态评估**: 工具调用失败，未返回有效的 JVM 内存数据（返回 \"暂无宿主 JVM 数据\"），可能是当前运行环境未关联到有效的 JVM 进程。\n- **需要关注**: 无法获取堆内存使用率，无法评估是否超过 85% 阈值。建议确认 JVM 进程是否正常运行，或重新连接到正确的 JVM 实例后重试诊断。"},"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":857,"completion_tokens":122,"total_tokens":979,"prompt_tokens_details":{"cached_tokens":768},"prompt_cache_hit_tokens":768,"prompt_cache_miss_tokens":89},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:33.416+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-1] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:30 GMT], [eo-cache-status: MISS], [eo-log-uuid: 16687037059214950689], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: 2a7f1a006c3e0bf16ea575f03b94621d]
+- body: {"id":"7dde72db-38c9-4515-84bf-5dee8af97a04","object":"chat.completion","created":1781596471,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"工具调用返回了提示信息，说明当前环境未接入指标采集组件（tingfeng-starter），无法获取真实的 CPU 数据。\n\n### CPU 使用率诊断\n- **关键指标**: 无（无法获取 CPU 数据）\n- **状态评估**: 工具调用失败，当前环境未接入 `tingfeng-starter` 指标采集组件，无法获取 JVM 进程 CPU 使用率及系统整体 CPU 负载数据。\n- **需要关注**: 需要确认应用是否已正确配置并启用 `tingfeng-starter`，或者检查宿主环境是否提供了其他可替代的监控通道（如 JMX、操作系统命令）。在当前条件下，无法判断 CPU 负载是否存在异常。"},"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":872,"completion_tokens":145,"total_tokens":1017,"prompt_tokens_details":{"cached_tokens":768},"prompt_cache_hit_tokens":768,"prompt_cache_miss_tokens":104},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:33.436+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-4] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:31 GMT], [eo-cache-status: MISS], [eo-log-uuid: 7293690025794073163], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: f68b63b25f4f3c443c6c1f3b3d00d52e]
+- body: {"id":"5f12c51d-7416-4cfe-a505-9d1cea10ae16","object":"chat.completion","created":1781596471,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"工具调用返回了\"暂无宿主 JVM 数据\"，说明当前环境可能没有运行的 JVM 进程，或者无法连接到目标 JVM。这种情况下我如实记录。\n\n### 线程池与死锁诊断排查\n\n- **关键指标**: 未获取到数据（工具返回\"暂无宿主 JVM 数据\"）\n- **状态评估**: ❌ 诊断失败 — 当前环境不存在可连接的 JVM 进程，无法获取线程统计信息（当前活跃线程数、峰值线程数、守护线程数、死锁检测等数据均不可用）\n- **需要关注**: 工具调用失败，建议确认目标 Java 应用进程是否已启动，或检查是否有权限 attach 到目标 JVM"},"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":872,"completion_tokens":148,"total_tokens":1020,"prompt_tokens_details":{"cached_tokens":768},"prompt_cache_hit_tokens":768,"prompt_cache_miss_tokens":104},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:34.328+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-2] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.13%, heap=83MB, threads=71
+2026-06-16T15:54:35.248+08:00  INFO 24348 --- [tingfeng-agent] [pool-2-thread-3] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:32 GMT], [eo-cache-status: MISS], [eo-log-uuid: 7134039636308623022], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: 4e4b1a5100340b0bacf1c1046ab40dbf]
+- body: {"id":"c5fee07c-d385-48ac-8469-76b107a6d95a","object":"chat.completion","created":1781596472,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"### GC 频率与堆内存排查笔记\n\n- **关键指标**: 当前无宿主 JVM 进程在运行（GC 统计、堆内存数据均返回\"暂无宿主 JVM 数据\"）\n- **状态评估**: 系统环境为 Windows 11 + Java 24.0.1，但当前工具无法连接到运行的 JVM 实例，无法获取实时的 GC 和堆内存数据\n- **需要关注**: \n  - 工具返回\"暂无宿主 JVM 数据\"，说明当前没有可诊断的目标 Java 应用进程在运行，或该进程未开启 JMX 相关接口导致工具无法采集\n  - 无法获取各代（Young GC / Full GC）的回收次数、耗时统计\n  - 无法判断 Full GC 次数是否异常，也无法观察 GC 后堆内存是否仍然居高不下\n- **建议**: 请先确认目标 Java 应用是否已启动并处于运行状态，重新附加诊断后再执行排查"},"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":1025,"completion_tokens":205,"total_tokens":1230,"prompt_tokens_details":{"cached_tokens":896},"prompt_cache_hit_tokens":896,"prompt_cache_miss_tokens":129},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:35.254+08:00  INFO 24348 --- [tingfeng-agent] [pool-4-thread-1] d.l.http.client.log.LoggingHttpClient    : HTTP request:
+- method: POST
+- url: https://api.deepseek.com/chat/completions
+- headers: [Authorization: Beare...62], [User-Agent: langchain4j-openai], [Content-Type: application/json]
+- body: {
+  "model" : "deepseek-v4-flash",
+  "messages" : [ {
+    "role" : "system",
+    "content" : "你是一个资深运维诊断分析师。根据用户问题、排查计划和排查笔记，输出最终诊断报告。\n\n报告格式：\n## 一、问题概述\n## 二、排查过程与发现\n## 三、根因分析\n## 四、修复建议\n## 五、总结\n\n规则：\n1. 基于排查笔记的真实数据来分析，不要猜测\n2. 如果排查不充分，在报告中指出信息缺口\n3. 修复建议要具体可执行\n"
+  }, {
+    "role" : "user",
+    "content" : "用户原始问题：帮我检查一下当前JVM情况\n\n排查笔记：\n工具调用返回了提示信息，说明当前环境未接入指标采集组件（tingfeng-starter），无法获取真实的 CPU 数据。\n\n### CPU 使用率诊断\n- **关键指标**: 无（无法获取 CPU 数据）\n- **状态评估**: 工具调用失败，当前环境未接入 `tingfeng-starter` 指标采集组件，无法获取 JVM 进程 CPU 使用率及系统整体 CPU 负载数据。\n- **需要关注**: 需要确认应用是否已正确配置并启用 `tingfeng-starter`，或者检查宿主环境是否提供了其他可替代的监控通道（如 JMX、操作系统命令）。在当前条件下，无法判断 CPU 负载是否存在异常。\n\n### JVM 堆内存使用诊断\n- **关键指标**: 堆内存已用/最大值 — 无数据；系统空闲物理内存 — 无数据\n- **状态评估**: 工具调用失败，未返回有效的 JVM 内存数据（返回 \"暂无宿主 JVM 数据\"），可能是当前运行环境未关联到有效的 JVM 进程。\n- **需要关注**: 无法获取堆内存使用率，无法评估是否超过 85% 阈值。建议确认 JVM 进程是否正常运行，或重新连接到正确的 JVM 实例后重试诊断。\n\n### GC 频率与堆内存排查笔记\n\n- **关键指标**: 当前无宿主 JVM 进程在运行（GC 统计、堆内存数据均返回\"暂无宿主 JVM 数据\"）\n- **状态评估**: 系统环境为 Windows 11 + Java 24.0.1，但当前工具无法连接到运行的 JVM 实例，无法获取实时的 GC 和堆内存数据\n- **需要关注**: \n  - 工具返回\"暂无宿主 JVM 数据\"，说明当前没有可诊断的目标 Java 应用进程在运行，或该进程未开启 JMX 相关接口导致工具无法采集\n  - 无法获取各代（Young GC / Full GC）的回收次数、耗时统计\n  - 无法判断 Full GC 次数是否异常，也无法观察 GC 后堆内存是否仍然居高不下\n- **建议**: 请先确认目标 Java 应用是否已启动并处于运行状态，重新附加诊断后再执行排查\n\n工具调用返回了\"暂无宿主 JVM 数据\"，说明当前环境可能没有运行的 JVM 进程，或者无法连接到目标 JVM。这种情况下我如实记录。\n\n### 线程池与死锁诊断排查\n\n- **关键指标**: 未获取到数据（工具返回\"暂无宿主 JVM 数据\"）\n- **状态评估**: ❌ 诊断失败 — 当前环境不存在可连接的 JVM 进程，无法获取线程统计信息（当前活跃线程数、峰值线程数、守护线程数、死锁检测等数据均不可用）\n- **需要关注**: 工具调用失败，建议确认目标 Java 应用进程是否已启动，或检查是否有权限 attach 到目标 JVM\n\n"
+  } ],
+  "stream" : false
+}
+
+2026-06-16T15:54:46.896+08:00  INFO 24348 --- [tingfeng-agent] [pool-4-thread-1] d.l.http.client.log.LoggingHttpClient    : HTTP response:
+- status code: 200
+- headers: [:status: 200], [access-control-allow-credentials: true], [age: 0], [content-type: application/json], [date: Tue, 16 Jun 2026 07:54:35 GMT], [eo-cache-status: MISS], [eo-log-uuid: 11713118605749891323], [server: openresty], [strict-transport-security: max-age=31536000; includeSubDomains; preload], [vary: origin, access-control-request-method, access-control-request-headers], [x-content-type-options: nosniff], [x-ds-trace-id: 33eb1a6306b477063dfc4e9ae0a0e3c3]
+- body: {"id":"c79aab5a-d84f-4583-a8ae-6fb8ab3776c3","object":"chat.completion","created":1781596475,"model":"deepseek-v4-flash","choices":[{"index":0,"message":{"role":"assistant","content":"好的，作为资深运维诊断分析师，我将根据您提供的用户问题和排查笔记，为您输出最终的诊断报告。\n\n---\n\n## 一、问题概述\n\n用户请求对当前JVM（Java虚拟机）的健康状况进行检查。\n\n## 二、排查过程与发现\n\n本次排查分步骤执行了多项诊断，具体的发现如下：\n\n1.  **CPU 使用率诊断**：诊断工具调用返回错误提示，指出当前环境未接入 `tingfeng-starter` 指标采集组件，因此无法获取任何有关 JVM 进程 CPU 使用率及系统整体 CPU 负载的数据。\n\n2.  **JVM 堆内存使用诊断**：诊断工具调用返回“暂无宿主 JVM 数据”，表明无法获取包括堆内存已用/最大值、系统空闲物理内存在内的任何数据。\n\n3.  **GC 频率与堆内存排查**：诊断工具调用返回“暂无宿主 JVM 数据”，无法获取 Young GC、Full GC 的回收次数、耗时等关键统计数据。\n\n4.  **线程池与死锁诊断排查**：诊断工具调用返回“暂无宿主 JVM 数据”，无法获取当前活跃线程数、守护线程数、峰值线程数、死锁状态等任何信息。\n\n**总结发现**：所有针对 JVM 的排查步骤均因工具无法连接到目标进程而失败，无法获取到任何有效的诊断数据。\n\n## 三、根因分析\n\n综合所有排查笔记，问题的根源清晰指向一点：\n\n**当前诊断工具无法连接到任何正在运行的 Java 应用进程（JVM 实例）**。\n\n具体原因可能为：\n1.  **没有目标应用在运行**：当前系统环境（Windows 11）下没有启动任何 Java 应用程序。\n2.  **工具配置或权限问题**：Java 应用进程已启动，但未开启标准的 JMX（Java管理扩展）接口，或者当前诊断工具没有足够的权限/方法附加（attach）到该进程。\n\n由于无法获取基础数据，所有后续的深入分析（CPU、内存、GC、线程）都无法开展。\n\n## 四、修复建议\n\n要解决此问题并完成诊断，请按照以下顺序执行操作：\n\n1.  **验证 Java 应用状态**：\n    - 打开任务管理器（Ctrl + Shift + Esc）。\n    - 在“进程”或“详细信息”标签页中，搜索是否有 `java.exe` 或 `javaw.exe` 进程在运行。\n    - **如果未找到**：请确认您的目标 Java 应用是否已经启动。启动应用后，再重新运行诊断工具。\n    - **如果找到**：请执行下一步。\n\n2.  **确保诊断工具能连接到 JVM**：\n    - **检查启动参数**：确认目标 Java 应用的启动参数中是否包含以下 JMX 配置（示例）：\n        ```\n        -Dcom.sun.management.jmxremote\n        -Dcom.sun.management.jmxremote.port=9010\n        -Dcom.sun.management.jmxremote.authenticate=false\n        -Dcom.sun.management.jmxremote.ssl=false\n        -Djava.rmi.server.hostname=127.0.0.1\n        ```\n        如果没有，需在应用启动脚本中添加。\n    - **检查工具配置**：如果使用 JMX，请确保诊断工具中配置的连接端口、主机和认证信息与实际应用的 JMX 配置完全一致。\n    - **检查依赖**：如笔记中所提，确认 `tingfeng-starter` 是否已正确集成到项目中。如果目标应用是一个非 Spring Boot 或未使用该组件的应用，可能需要更换诊断方式（如直接使用 JConsole、VisualVM 通过 JMX 连接）。\n\n3.  **使用备用诊断工具**：\n    - 使用 Java 自带的 `jvisualvm` 或 `jconsole`（它们通常位于 JDK 安装目录的 `bin` 文件夹下）。\n    - 通过这些工具同样尝试连接到本地的 JVM 进程，以验证是应用进程问题还是本诊断工具的问题。\n\n## 五、总结\n\n**本次诊断因工具无法定位到任何处在运行状态的 JVM 实例而失败，未能得出任何关于 JVM 健康状况的结论。** 核心障碍在于诊断工具与目标 Java 应用之间无法建立连接，这可能是由于目标应用未启动、配置缺失或权限不足所致。请按照“修复建议”中的步骤操作，确保目标 Java 应用处于运行状态且监听诊断连接，再尝试重新运行诊断排查。"},"logprobs":null,"finish_reason":"stop"}],"usage":{"prompt_tokens":741,"completion_tokens":947,"total_tokens":1688,"prompt_tokens_details":{"cached_tokens":0},"prompt_cache_hit_tokens":0,"prompt_cache_miss_tokens":741},"system_fingerprint":"fp_8b330d02d0_prod0820_fp8_kvcache_20260402"}
+
+2026-06-16T15:54:49.354+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-5] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.19%, heap=83MB, threads=71
+2026-06-16T15:55:04.344+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-6] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.29%, heap=83MB, threads=71
+2026-06-16T15:55:19.335+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-2] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.1%, heap=83MB, threads=71
+2026-06-16T15:55:34.352+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-8] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.25%, heap=83MB, threads=71
+2026-06-16T15:55:49.346+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-9] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.19%, heap=51MB, threads=71
+2026-06-16T15:56:04.338+08:00  INFO 24348 --- [tingfeng-agent] [nio-8081-exec-1] c.t.agent.controller.ReportController    : Received JVM metrics: cpu=0.22%, heap=51MB, threads=71
+2026-06-16T15:56:13.264+08:00  INFO 24348 --- [tingfeng-agent] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : TingFengPersist - Shutdown initiated...
+2026-06-16T15:56:13.267+08:00  INFO 24348 --- [tingfeng-agent] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : TingFengPersist - Shutdown completed.
+2026-06-16T15:56:13.283+08:00  INFO 24348 --- [tingfeng-agent] [ionShutdownHook] com.tingfeng.agent.service.RagService    : 向量知识库已保存到 data\rag_store.json
+
+进程已结束，退出代码为 130

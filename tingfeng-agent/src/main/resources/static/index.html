@@ -401,7 +401,8 @@ function sendPipelineSSE(msg) {
     let reportDiv = null;
     let taskDivs = [];
 
-    const url = API_PIPELINE_SSE + '?msg=' + encodeURIComponent(msg);
+    var url = API_PIPELINE_SSE + '?msg=' + encodeURIComponent(msg);
+    if (sessionId) url += '&sessionId=' + encodeURIComponent(sessionId);
     const es = new EventSource(url);
 
     es.addEventListener('phase', e => {

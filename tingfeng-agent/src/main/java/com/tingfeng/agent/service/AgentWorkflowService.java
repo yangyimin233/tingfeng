@@ -32,6 +32,7 @@ public class AgentWorkflowService {
     private final ReporterAgent reporter;
     private final RagService ragService;
     private final ToolRegistryManager registryManager;
+    private final SessionHistoryManager sessionHistoryManager;
     private final int snapshotContextSize;
     private final int taskTimeoutSeconds;
 
@@ -39,20 +40,24 @@ public class AgentWorkflowService {
                                  ReporterAgent reporter,
                                  RagService ragService,
                                  ToolRegistryManager registryManager,
+                                 SessionHistoryManager sessionHistoryManager,
                                  TingFengProperties props) {
         this.planner = planner;
         this.reporter = reporter;
         this.ragService = ragService;
         this.registryManager = registryManager;
+        this.sessionHistoryManager = sessionHistoryManager;
         this.snapshotContextSize = props.getExecutor().getSnapshotContextSize();
         this.taskTimeoutSeconds = props.getExecutor().getTimeoutSeconds();
     }
 
-    public String diagnose(String msg) {
+    public String diagnose(String msg) { return diagnose(msg, null); }
+
+    public String diagnose(String msg, String sessionId) {
         long start = System.currentTimeMillis();
         log.info("=== Pipeline 诊断开始 ===");
 
-        List<TodoItem> todos = planWithRag(msg);
+        List<TodoItem> todos = planWithRag(msg, sessionId);
         if (todos.isEmpty()) {
             log.info("非运维问题，已拦截");
             return "我是运维诊断助手，仅能处理 Redis、MySQL、服务器诊断等相关问题。请提供运维相关的排查需求。";
@@ -86,15 +91,18 @@ public class AgentWorkflowService {
             report = "## 诊断报告生成失败\n\n" + notes;
         }
 
+        sessionHistoryManager.record(sessionId, msg, report);
         log.info("=== Pipeline 诊断完成 ({}ms) ===", System.currentTimeMillis() - start);
         return report;
     }
 
-    public void diagnoseStream(String msg, SseEmitter emitter) {
+    public void diagnoseStream(String msg, SseEmitter emitter) { diagnoseStream(msg, emitter, null); }
+
+    public void diagnoseStream(String msg, SseEmitter emitter, String sessionId) {
         try {
             emitter.send(event("phase", "规划中... 正在分析问题"));
 
-            List<TodoItem> todos = planWithRag(msg);
+            List<TodoItem> todos = planWithRag(msg, sessionId);
             emitter.send(event("plan", todos.stream().map(TodoItem::task).toList()));
 
             if (todos.isEmpty()) {
@@ -164,6 +172,7 @@ public class AgentWorkflowService {
                 emitter.send(event("actions", actionsJson));
             }
 
+            sessionHistoryManager.record(sessionId, msg, report);
             emitter.send(event("report", report));
             emitter.complete();
 
@@ -221,8 +230,10 @@ public class AgentWorkflowService {
 
     // ── Planner 调用 + JSON 解析 ──
 
-    private List<TodoItem> planWithRag(String msg) {
+    private List<TodoItem> planWithRag(String msg, String sessionId) {
         StringBuilder ctx = new StringBuilder();
+        // 注入 session 历史上下文
+        ctx.append(sessionHistoryManager.getContext(sessionId));
         ctx.append(buildRagContext(msg));
         ctx.append(querySnapshotResources());
         String enriched = ctx.isEmpty() ? msg : ctx + "\n\n为以下问题制定排查计划：\n" + msg;

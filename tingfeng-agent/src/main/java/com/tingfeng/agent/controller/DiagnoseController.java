@@ -28,10 +28,11 @@ public class DiagnoseController {
 //    }
 
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter stream(@RequestParam String msg) {
+    public SseEmitter stream(@RequestParam String msg,
+                              @RequestParam(required = false) String sessionId) {
         SseEmitter emitter = new SseEmitter(300_000L);
         Executors.newSingleThreadExecutor().execute(() ->
-                workflowService.diagnoseStream(msg, emitter));
+                workflowService.diagnoseStream(msg, emitter, sessionId));
         return emitter;
     }
 }

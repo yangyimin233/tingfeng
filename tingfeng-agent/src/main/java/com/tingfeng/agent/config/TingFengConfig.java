@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.tingfeng.agent.agent.TingFengOpsAgent;
 import com.tingfeng.agent.controller.TingFengChatController;
 import com.tingfeng.agent.http.DeepSeekHttpClient;
+import com.tingfeng.agent.http.TokenUsageTracker;
 import dev.langchain4j.memory.ChatMemory;
 import dev.langchain4j.memory.chat.ChatMemoryProvider;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
@@ -18,6 +19,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -27,7 +29,10 @@ public class TingFengConfig {
     private static final Logger log = LoggerFactory.getLogger(TingFengConfig.class);
 
     @Bean
-    ChatModel chatLanguageModel(TingFengProperties props) {
+    TokenUsageTracker tokenUsageTracker() { return new TokenUsageTracker(); }
+
+    @Bean
+    ChatModel chatLanguageModel(TingFengProperties props, TokenUsageTracker tracker) {
         return OpenAiChatModel.builder()
                 .apiKey(props.getLlm().getApiKey())
                 .baseUrl(props.getLlm().getBaseUrl())
@@ -35,6 +40,7 @@ public class TingFengConfig {
                 .timeout(Duration.ofSeconds(60))
                 .logRequests(true)
                 .logResponses(true)
+                .listeners(List.of(tracker))
                 .httpClientBuilder(DeepSeekHttpClient.httpClientBuilder())
                 .build();
     }
@@ -60,15 +66,18 @@ public class TingFengConfig {
      */
     @Bean
     TingFengOpsAgent tingFengOpsAgent(ChatModel model,
-                                      ChatMemoryProvider chatMemoryProvider) {
+                                      ChatMemoryProvider chatMemoryProvider,
+                                      ToolRegistryManager registryManager) {
         return AiServices.builder(TingFengOpsAgent.class)
                 .chatModel(model)
+                .toolProvider(registryManager.getFullToolProvider())
                 .chatMemoryProvider(chatMemoryProvider)
                 .build();
     }
 
     @Bean
-    TingFengChatController tingFengChatController(TingFengOpsAgent agent) {
-        return new TingFengChatController(agent);
+    TingFengChatController tingFengChatController(TingFengOpsAgent agent,
+                                                    TokenUsageTracker tracker) {
+        return new TingFengChatController(agent, tracker);
     }
 }

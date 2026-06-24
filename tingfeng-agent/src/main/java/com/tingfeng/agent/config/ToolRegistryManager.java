@@ -312,6 +312,14 @@ public class ToolRegistryManager {
         }
     }
 
+    public McpToolProvider getFullToolProvider() {
+        List<McpClient> all = new ArrayList<>(clients.values());
+        return McpToolProvider.builder()
+                .mcpClients(all.toArray(McpClient[]::new))
+                .failIfOneServerFails(false)
+                .build();
+    }
+
     public McpClient getSnapshotClient() { return clients.get("snapshot-mcp"); }
 
     /** 获取指定 client（用于直调 MCP 工具，不经过 LLM） */

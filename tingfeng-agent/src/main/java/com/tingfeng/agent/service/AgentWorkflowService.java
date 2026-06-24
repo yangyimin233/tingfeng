@@ -7,6 +7,7 @@ import com.tingfeng.agent.agent.ReporterAgent;
 import com.tingfeng.agent.agent.TodoItem;
 import com.tingfeng.agent.config.TingFengProperties;
 import com.tingfeng.agent.config.ToolRegistryManager;
+import com.tingfeng.agent.http.TokenUsageTracker;
 import dev.langchain4j.mcp.client.McpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,7 @@ public class AgentWorkflowService {
     private final RagService ragService;
     private final ToolRegistryManager registryManager;
     private final SessionHistoryManager sessionHistoryManager;
+    private final TokenUsageTracker tokenTracker;
     private final int snapshotContextSize;
     private final int taskTimeoutSeconds;
 
@@ -41,12 +43,14 @@ public class AgentWorkflowService {
                                  RagService ragService,
                                  ToolRegistryManager registryManager,
                                  SessionHistoryManager sessionHistoryManager,
+                                 TokenUsageTracker tokenTracker,
                                  TingFengProperties props) {
         this.planner = planner;
         this.reporter = reporter;
         this.ragService = ragService;
         this.registryManager = registryManager;
         this.sessionHistoryManager = sessionHistoryManager;
+        this.tokenTracker = tokenTracker;
         this.snapshotContextSize = props.getExecutor().getSnapshotContextSize();
         this.taskTimeoutSeconds = props.getExecutor().getTimeoutSeconds();
     }
@@ -100,6 +104,7 @@ public class AgentWorkflowService {
 
     public void diagnoseStream(String msg, SseEmitter emitter, String sessionId) {
         try {
+            tokenTracker.reset();
             emitter.send(event("phase", "规划中... 正在分析问题"));
 
             List<TodoItem> todos = planWithRag(msg, sessionId);
@@ -174,13 +179,20 @@ public class AgentWorkflowService {
 
             sessionHistoryManager.record(sessionId, msg, report);
             emitter.send(event("report", report));
+            var usage = tokenTracker.getUsage();
+            log.info("{}", tokenTracker.format());
+            emitter.send(event("token", String.format(
+                    "{\"calls\":%d,\"input\":%d,\"output\":%d,\"total\":%d}",
+                    tokenTracker.getCallCount(), usage.inputTokenCount(),
+                    usage.outputTokenCount(), usage.totalTokenCount())));
             emitter.complete();
 
         } catch (Exception e) {
             log.error("Pipeline 流式诊断异常", e);
             try {
-                emitter.send(event("error", e.getMessage()));
-            } catch (IOException ignored) {}
+                String errMsg = e.getMessage();
+                emitter.send(event("error", errMsg != null ? errMsg : e.getClass().getSimpleName()));
+            } catch (Exception ignored) {}
             emitter.completeWithError(e);
         }
     }

@@ -68,4 +68,10 @@ public class DiagnosticSnapshot {
 
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+
+    /** 本次请求中 MyBatis 拦截的 SQL 列表 (JSON 数组) */
+    private String sqlStatements;
+
+    public String getSqlStatements() { return sqlStatements; }
+    public void setSqlStatements(String sqlStatements) { this.sqlStatements = sqlStatements; }
 }

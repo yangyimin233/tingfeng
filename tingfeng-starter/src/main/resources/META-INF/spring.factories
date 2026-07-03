@@ -1,2 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.tingfeng.starter.config.TingFengAutoConfiguration
+com.tingfeng.starter.config.TingFengAutoConfiguration,\
+com.tingfeng.starter.config.TingFengMyBatisConfig

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tingfeng.starter.annotation.TingFengMonitor;
 import com.tingfeng.starter.model.DiagnosticSnapshot;
 import com.tingfeng.starter.report.TingFengReportClient;
+import com.tingfeng.starter.trace.TingFengTraceContext;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -45,6 +46,9 @@ public class TingFengMonitorAspect {
         String methodName = resolveMethodName(joinPoint, tingFengMonitor);
         String argsJson = serialize(joinPoint.getArgs());
 
+        // 开启 ThreadLocal 追踪, MyBatis Interceptor 中途追加 SQL
+        TingFengTraceContext.start(methodName, argsJson, start);
+
         boolean success = true;
         Object returnValue = null;
         String errorMsg = null;
@@ -71,11 +75,25 @@ public class TingFengMonitorAspect {
                 snapshot.setErrorStack(errorStack);
                 snapshot.setTimestamp(System.currentTimeMillis());
 
+                // 收集 MyBatis SQL 列表 (最多 50 条, JSON 截断 10000 字符)
+                TingFengTraceContext.Trace trace = TingFengTraceContext.current();
+                log.debug("[TingFeng Trace] current trace={}", trace);
+                if (trace != null && !trace.sqlStatements.isEmpty()) {
+                    String json = serialize(trace.sqlStatements);
+                    log.info("[TingFeng SQL] 方法={} 捕获到 {} 条SQL",
+                            methodName, trace.sqlStatements.size());
+                    snapshot.setSqlStatements(json.length() > 10000
+                            ? json.substring(0, 10000) + "...(truncated)" : json);
+                } else {
+                    log.debug("[TingFeng Trace] trace is null or sql list empty, method={}", methodName);
+                }
+
                 reportExecutor.execute(() -> {
                     try { reportClient.report(snapshot); }
                     catch (Exception e) { log.debug("TingFeng report failed: {}", e.getMessage()); }
                 });
             }
+            TingFengTraceContext.clear();
         }
     }
 

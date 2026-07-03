@@ -35,4 +35,5 @@ public class TingFengAutoConfiguration {
         collector.start();
         return collector;
     }
+
 }

@@ -17,18 +17,19 @@ public class SnapshotRepository {
 
     private static final String DDL =
             "CREATE TABLE IF NOT EXISTS tingfeng_snapshot (" +
-            "  id           BIGINT AUTO_INCREMENT PRIMARY KEY," +
-            "  trace_id     VARCHAR(32)  NOT NULL," +
-            "  method_name  VARCHAR(255) NOT NULL," +
-            "  args         MEDIUMTEXT," +
-            "  return_value MEDIUMTEXT," +
-            "  request_time BIGINT       NOT NULL," +
-            "  rt_ms        BIGINT       NOT NULL," +
-            "  success      TINYINT(1)   NOT NULL," +
-            "  error_msg    TEXT," +
-            "  error_stack  MEDIUMTEXT," +
-            "  timestamp    BIGINT       NOT NULL," +
-            "  created_at   DATETIME     DEFAULT CURRENT_TIMESTAMP," +
+            "  id            BIGINT AUTO_INCREMENT PRIMARY KEY," +
+            "  trace_id      VARCHAR(32)  NOT NULL," +
+            "  method_name   VARCHAR(255) NOT NULL," +
+            "  args          MEDIUMTEXT," +
+            "  return_value  MEDIUMTEXT," +
+            "  request_time  BIGINT       NOT NULL," +
+            "  rt_ms         BIGINT       NOT NULL," +
+            "  success       TINYINT(1)   NOT NULL," +
+            "  error_msg     TEXT," +
+            "  error_stack   MEDIUMTEXT," +
+            "  sql_statements MEDIUMTEXT," +
+            "  timestamp     BIGINT       NOT NULL," +
+            "  created_at    DATETIME     DEFAULT CURRENT_TIMESTAMP," +
             "  INDEX idx_request (request_time)," +
             "  INDEX idx_timestamp (timestamp)," +
             "  INDEX idx_method   (method_name)," +
@@ -37,8 +38,8 @@ public class SnapshotRepository {
 
     private static final String INSERT_SQL =
             "INSERT INTO tingfeng_snapshot" +
-            "  (trace_id, method_name, args, return_value, request_time, rt_ms, success, error_msg, error_stack, timestamp)" +
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "  (trace_id, method_name, args, return_value, request_time, rt_ms, success, error_msg, error_stack, sql_statements, timestamp)" +
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private final JdbcTemplate jdbc;
 
@@ -59,6 +60,7 @@ public class SnapshotRepository {
                     Boolean.TRUE.equals(snapshot.get("success")) ? 1 : 0,
                     snapshot.get("errorMsg"),
                     truncate((String) snapshot.get("errorStack"), 20000),
+                    truncate((String) snapshot.get("sqlStatements"), 20000),
                     toLong(snapshot.get("timestamp")));
         } catch (Exception e) {
             log.debug("探针快照落库失败: {}", e.getMessage());
@@ -70,6 +72,8 @@ public class SnapshotRepository {
             jdbc.execute(DDL);
             // 兼容已有表: 补齐 request_time 列
             try { jdbc.execute("ALTER TABLE tingfeng_snapshot ADD COLUMN request_time BIGINT"); }
+            catch (Exception ignored) { /* 列已存在 */ }
+            try { jdbc.execute("ALTER TABLE tingfeng_snapshot ADD COLUMN sql_statements MEDIUMTEXT"); }
             catch (Exception ignored) { /* 列已存在 */ }
             log.info("探针快照表 tingfeng_snapshot 已就绪");
         } catch (Exception e) {

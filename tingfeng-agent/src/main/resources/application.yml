@@ -30,6 +30,12 @@ tingfeng:
     timeout-seconds: ${EXECUTOR_TIMEOUT_SECONDS:60}
     # Planner 上下文注入的探针快照条数
     snapshot-context-size: ${SNAPSHOT_CONTEXT_SIZE:10}
+  alert:
+    # 是否启用告警 Webhook 接收 (Prometheus Alertmanager 回调)
+    enabled: ${ALERT_ENABLED:true}
+    feishu:
+      # 飞书自定义机器人 Webhook 地址
+      webhook-url: ${FEISHU_WEBHOOK_URL:https://open.feishu.cn/open-apis/bot/v2/hook/80d92567-9d08-4ecb-b719-1a416be9a889}
   ollama:
     base-url: ${OLLAMA_BASE_URL:http://localhost:11434/v1}
     model-name: ${OLLAMA_MODEL:deepseek-r1:8b}

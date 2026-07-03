@@ -1,0 +1,14 @@
+groups:
+  - name: tingfeng_test
+    rules:
+      - alert: TingFengTestAlwaysFire
+        expr: up == 1
+        for: 0s
+        labels:
+          severity: critical
+          service: order-service
+          component: redis
+          team: platform
+        annotations:
+          summary: "Redis 响应延迟异常"
+          description: "order-service 依赖的 Redis 实例 P99 延迟 > 200ms，连接池使用率 95%。请检查 Redis 慢查询、大 Key、连接数是否异常。"

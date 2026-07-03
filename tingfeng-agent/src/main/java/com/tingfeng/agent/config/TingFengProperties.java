@@ -11,6 +11,7 @@ public class TingFengProperties {
     private Redis redis = new Redis();
     private Executor executor = new Executor();
     private Ollama ollama = new Ollama();
+    private Alert alert = new Alert();
 
     public Llm getLlm() { return llm; }
     public void setLlm(Llm llm) { this.llm = llm; }
@@ -29,6 +30,9 @@ public class TingFengProperties {
 
     public Ollama getOllama() { return ollama; }
     public void setOllama(Ollama ollama) { this.ollama = ollama; }
+
+    public Alert getAlert() { return alert; }
+    public void setAlert(Alert alert) { this.alert = alert; }
 
     public static class Llm {
         private String apiKey;
@@ -122,5 +126,23 @@ public class TingFengProperties {
 
         public int getDatabase() { return database; }
         public void setDatabase(int database) { this.database = database; }
+    }
+
+    public static class Alert {
+        private boolean enabled = false;
+        private Feishu feishu = new Feishu();
+
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public Feishu getFeishu() { return feishu; }
+        public void setFeishu(Feishu feishu) { this.feishu = feishu; }
+    }
+
+    public static class Feishu {
+        private String webhookUrl = "";
+
+        public String getWebhookUrl() { return webhookUrl; }
+        public void setWebhookUrl(String webhookUrl) { this.webhookUrl = webhookUrl; }
     }
 }

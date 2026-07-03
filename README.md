@@ -191,6 +191,127 @@ curl "http://localhost:8081/tingfeng/chat?msg=检查Redis健康状况"
 
 ---
 
+## AIOps 自动巡检
+
+从"被动问答"升级为"收到告警自动排查"。对接 Prometheus + Alertmanager 标准监控生态，告警触发后全链路自动诊断并将报告推送到飞书群。
+
+### 工作流程
+
+```
+Prometheus (定时抓取指标)
+    │
+    ├── alert_rules.yml 判断触发条件, 打上 severity / service 标签
+    │
+    ▼
+Alertmanager (分组 → 去重 → 聚合)
+    │
+    │  Webhook JSON POST (Alertmanager v4 格式)
+    │
+    ▼
+TingFeng /api/v1/alerts/webhook
+    │
+    ├── 立刻返回 200 OK (不阻塞 Alertmanager)
+    │
+    ├── 异步线程池提取告警信息 → 拼 Prompt → Pipeline 诊断
+    │     Planner → Diagnoser(Redis/MySQL/CPU/Snapshot) → Reporter
+    │
+    ▼
+RestTemplate POST → 飞书交互式卡片
+    ├── 卡片标题: 告警摘要 (如 "Redis 响应延迟异常")
+    ├── 模板颜色: critical → 红 / warning → 黄 / info → 蓝
+    ├── 正文: Pipeline 诊断报告 Markdown
+    └── 尾部: 时间戳水印
+```
+
+### 本地测试环境
+
+```bash
+cd docker
+docker-compose up -d   # 启动 Prometheus (9090) + Alertmanager (9093)
+```
+
+**四份配置串起整个链路：**
+
+| 文件 | 作用 |
+|------|------|
+| [docker/prometheus.yml](docker/prometheus.yml) | 5s 抓取周期，规则文件指向 alert_rules.yml，告警推给 alertmanager:9093 |
+| [docker/alert_rules.yml](docker/alert_rules.yml) | 告警规则：`expr: up == 1`（必触发测试），带 severity/service/component 标签 |
+| [docker/alertmanager.yml](docker/alertmanager.yml) | 按 alertname 分组，group_wait 5s / repeat_interval 30s，Webhook → `host.docker.internal:8081` |
+| [application.yml](tingfeng-agent/src/main/resources/application.yml) | `tingfeng.alert.enabled: true` 控制端点注册，飞书 Webhook URL 可配置 |
+
+Alertmanager 的 Webhook 默认发往 `http://host.docker.internal:8081/api/v1/alerts/webhook`。`host.docker.internal` 是 Docker Desktop 提供的能力，让容器访问宿主机端口。
+
+### 配置与启用
+
+```yaml
+# application.yml
+tingfeng:
+  alert:
+    enabled: ${ALERT_ENABLED:true}            # 默认开启
+    feishu:
+      webhook-url: ${FEISHU_WEBHOOK_URL:https://open.feishu.cn/...}  # 飞书自定义机器人地址
+```
+
+### 直接 curl 验证
+
+```bash
+curl -X POST http://localhost:8081/api/v1/alerts/webhook \
+  -H "Content-Type: application/json" \
+  -d '{
+    "version": "4",
+    "groupKey": "test:{}",
+    "status": "firing",
+    "receiver": "tingfeng",
+    "groupLabels": {},
+    "commonLabels": {"service": "order-service", "severity": "critical"},
+    "commonAnnotations": {},
+    "externalURL": "http://localhost:9093",
+    "alerts": [{
+      "status": "firing",
+      "labels": {"alertname": "TestAlert", "service": "order-service",
+                  "severity": "critical", "component": "redis"},
+      "annotations": {
+        "summary": "Redis 响应延迟异常",
+        "description": "P99 延迟 > 200ms，连接池使用率 95%"
+      },
+      "startsAt": "2026-07-03T10:00:00Z",
+      "endsAt": "0001-01-01T00:00:00Z",
+      "generatorURL": "http://localhost:9090/graph",
+      "fingerprint": "abc123"
+    }]
+  }'
+```
+
+返回 `ok` 即表示 Webhook 接收成功，飞书群将收到卡片消息。
+
+### 关键设计
+
+- **异步非阻塞**：Controller 秒回 200，诊断在独立 2 线程池中执行，不阻塞 Alertmanager
+- **告警去重依赖上游**：Alertmanager 自身按 `alertname` 分组 + `group_interval` 防抖，TingFeng 不重复实现
+- **报告源头规范**：Reporter SystemMessage 硬约束"报告第一行必须是 `## 一、问题概述`"，禁止 AI 输出开场白
+- **卡片按级别配色**：从告警 labels.severity 提取 → critical 红 / warning 黄 / info 蓝
+
+### 接入生产环境
+
+当前测试规则用 `up == 1` 模拟。接入真实 Prometheus 后，将 `alert_rules.yml` 改为真实条件：
+
+```yaml
+- alert: RedisConnectionExhausted
+  expr: redis_connected_clients > 500
+  for: 5m
+  labels:
+    severity: critical
+    service: order-service
+    component: redis
+  annotations:
+    summary: "Redis 连接数超阈值"
+    description: "实例 {{ $labels.instance }} 连接数 {{ $value }}，超过 500 阈值"
+```
+
+只需在目标机器旁部署对应的 Exporter（`redis_exporter` / `mysqld_exporter` / `node_exporter`），Prometheus 配置一条 scrape 规则即可。
+
+---
+
 ## 项目管理接口
 
 ```bash

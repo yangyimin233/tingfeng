@@ -130,10 +130,18 @@ public class TingFengProperties {
 
     public static class Alert {
         private boolean enabled = false;
+        private int batchWindowSeconds = 30;
+        private int maxBatchSize = 100;
         private Feishu feishu = new Feishu();
 
         public boolean isEnabled() { return enabled; }
         public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
+        public int getBatchWindowSeconds() { return batchWindowSeconds; }
+        public void setBatchWindowSeconds(int batchWindowSeconds) { this.batchWindowSeconds = batchWindowSeconds; }
+
+        public int getMaxBatchSize() { return maxBatchSize; }
+        public void setMaxBatchSize(int maxBatchSize) { this.maxBatchSize = maxBatchSize; }
 
         public Feishu getFeishu() { return feishu; }
         public void setFeishu(Feishu feishu) { this.feishu = feishu; }

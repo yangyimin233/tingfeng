@@ -33,6 +33,10 @@ tingfeng:
   alert:
     # 是否启用告警 Webhook 接收 (Prometheus Alertmanager 回调)
     enabled: ${ALERT_ENABLED:true}
+    # 告警批处理窗口(秒), 窗口内收到的多条告警打包一次诊断; 设为 0 则收到即查
+    batch-window-seconds: ${ALERT_BATCH_WINDOW:30}
+    # 缓冲池上限, 超过此数量立即强制消费, 防止告警风暴打爆内存
+    max-batch-size: ${ALERT_MAX_BATCH:100}
     feishu:
       # 飞书自定义机器人 Webhook 地址
       webhook-url: ${FEISHU_WEBHOOK_URL:https://open.feishu.cn/open-apis/bot/v2/hook/80d92567-9d08-4ecb-b719-1a416be9a889}

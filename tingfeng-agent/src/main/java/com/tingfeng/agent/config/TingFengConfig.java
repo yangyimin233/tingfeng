@@ -37,6 +37,7 @@ public class TingFengConfig {
                 .apiKey(props.getLlm().getApiKey())
                 .baseUrl(props.getLlm().getBaseUrl())
                 .modelName(props.getLlm().getModelName())
+                .maxRetries(2)
                 .timeout(Duration.ofSeconds(60))
                 .logRequests(true)
                 .logResponses(true)

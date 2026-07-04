@@ -1,5 +1,8 @@
 package com.tingfeng.starter.trace;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +26,10 @@ public class TingFengTraceContext {
     private static final int MAX_SQL_COUNT = 50;
 
     /** MyBatis Interceptor 追加一条 SQL (超过上限不再收集) */
-    public static void addSql(String sql, long durationMs) {
+    public static void addSql(SqlEntry entry) {
         Trace t = LOCAL.get();
         if (t != null && t.sqlStatements != null && t.sqlStatements.size() < MAX_SQL_COUNT) {
-            t.sqlStatements.add(new SqlEntry(sql, durationMs));
+            t.sqlStatements.add(entry);
         }
     }
 
@@ -47,13 +50,28 @@ public class TingFengTraceContext {
         public final List<SqlEntry> sqlStatements = new ArrayList<>();
     }
 
+    @JsonPropertyOrder({"mapperId", "sql", "paramsSummary", "durationMs", "rows", "success", "errorMsg"})
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class SqlEntry {
-        public final String sql;
-        public final long durationMs;
+        public String mapperId;
+        public String sql;
+        public String paramsSummary;
+        public long durationMs;
+        public long rows;
+        public boolean success = true;
+        public String errorMsg;
 
-        public SqlEntry(String sql, long durationMs) {
+        public SqlEntry() {}
+
+        public SqlEntry(String mapperId, String sql, String paramsSummary,
+                        long durationMs, long rows, boolean success, String errorMsg) {
+            this.mapperId = mapperId;
             this.sql = sql;
+            this.paramsSummary = paramsSummary;
             this.durationMs = durationMs;
+            this.rows = rows;
+            this.success = success;
+            this.errorMsg = errorMsg;
         }
     }
 }

@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Configuration;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 @Configuration
@@ -29,11 +31,25 @@ public class TingFengConfig {
     private static final Logger log = LoggerFactory.getLogger(TingFengConfig.class);
 
     @Bean
-    TokenUsageTracker tokenUsageTracker() { return new TokenUsageTracker(); }
+    TokenUsageTracker tokenUsageTracker(TingFengProperties props) {
+        TokenUsageTracker tracker = new TokenUsageTracker();
+        tracker.setEnabled(props.getLlm().isTrackingEnabled());
+        return tracker;
+    }
+
+    /** 全局共享后台线程池，Controller SSE / 测试等长任务复用，避免每个请求建新线程池 */
+    @Bean("backgroundExecutor")
+    ExecutorService backgroundExecutor() {
+        return Executors.newFixedThreadPool(4, r -> {
+            Thread t = new Thread(r, "tingfeng-bg");
+            t.setDaemon(true);
+            return t;
+        });
+    }
 
     @Bean
     ChatModel chatLanguageModel(TingFengProperties props, TokenUsageTracker tracker) {
-        return OpenAiChatModel.builder()
+        var builder = OpenAiChatModel.builder()
                 .apiKey(props.getLlm().getApiKey())
                 .baseUrl(props.getLlm().getBaseUrl())
                 .modelName(props.getLlm().getModelName())
@@ -41,9 +57,11 @@ public class TingFengConfig {
                 .timeout(Duration.ofSeconds(60))
                 .logRequests(true)
                 .logResponses(true)
-                .listeners(List.of(tracker))
-                .httpClientBuilder(DeepSeekHttpClient.httpClientBuilder())
-                .build();
+                .httpClientBuilder(DeepSeekHttpClient.httpClientBuilder());
+        if (props.getLlm().isTrackingEnabled()) {
+            builder.listeners(List.of(tracker));
+        }
+        return builder.build();
     }
 
     @Bean

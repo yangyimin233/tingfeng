@@ -81,6 +81,10 @@ public class RagService {
     // ── 混合检索 ──
 
     public List<String> search(String query, int maxResults) {
+        return search(query, maxResults, 0.0);
+    }
+
+    public List<String> search(String query, int maxResults, double minScore) {
         if (store == null) return Collections.emptyList();
         try {
             // 1. 向量检索 (语义维度)
@@ -89,6 +93,7 @@ public class RagService {
                     EmbeddingSearchRequest.builder()
                             .queryEmbedding(queryEmbedding)
                             .maxResults(10)
+                            .minScore(minScore)
                             .build());
 
             List<EmbeddingMatch<TextSegment>> vMatches = vectorResult.matches();

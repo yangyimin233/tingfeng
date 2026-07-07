@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.Map;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ExecutorService;
 
 @RestController
 @RequestMapping("/test")
@@ -19,9 +19,13 @@ public class TestRunnerController {
     private static final Logger log = LoggerFactory.getLogger(TestRunnerController.class);
 
     private final TestRunnerService runner;
+    private final ExecutorService backgroundExecutor;
 
-    public TestRunnerController(TestRunnerService runner) {
+    public TestRunnerController(TestRunnerService runner,
+                                @org.springframework.beans.factory.annotation.Qualifier("backgroundExecutor")
+                                ExecutorService backgroundExecutor) {
         this.runner = runner;
+        this.backgroundExecutor = backgroundExecutor;
     }
 
     /**
@@ -40,7 +44,7 @@ public class TestRunnerController {
     @GetMapping(value = "/compare-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter compareStream() {
         SseEmitter emitter = new SseEmitter(600_000L);
-        Executors.newSingleThreadExecutor().execute(() -> {
+        backgroundExecutor.execute(() -> {
             try {
                 emitter.send(SseEmitter.event().name("start").data("测试开始"));
                 Map<String, Object> result = runner.runAllTests();

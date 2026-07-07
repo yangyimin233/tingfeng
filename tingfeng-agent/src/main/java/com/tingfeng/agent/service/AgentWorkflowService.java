@@ -9,10 +9,13 @@ import com.tingfeng.agent.config.TingFengProperties;
 import com.tingfeng.agent.config.ToolRegistryManager;
 import com.tingfeng.agent.http.TokenUsageTracker;
 import dev.langchain4j.mcp.client.McpClient;
+import dev.langchain4j.model.chat.ChatModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import jakarta.annotation.PreDestroy;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,6 +38,7 @@ public class AgentWorkflowService {
     private final ToolRegistryManager registryManager;
     private final SessionHistoryManager sessionHistoryManager;
     private final TokenUsageTracker tokenTracker;
+    private final ChatModel chatModel;
     private final int snapshotContextSize;
     private final int taskTimeoutSeconds;
 
@@ -44,6 +48,7 @@ public class AgentWorkflowService {
                                  ToolRegistryManager registryManager,
                                  SessionHistoryManager sessionHistoryManager,
                                  TokenUsageTracker tokenTracker,
+                                 ChatModel chatModel,
                                  TingFengProperties props) {
         this.planner = planner;
         this.reporter = reporter;
@@ -51,6 +56,7 @@ public class AgentWorkflowService {
         this.registryManager = registryManager;
         this.sessionHistoryManager = sessionHistoryManager;
         this.tokenTracker = tokenTracker;
+        this.chatModel = chatModel;
         this.snapshotContextSize = props.getExecutor().getSnapshotContextSize();
         this.taskTimeoutSeconds = props.getExecutor().getTimeoutSeconds();
     }
@@ -221,7 +227,18 @@ public class AgentWorkflowService {
     private record TaskResult(String note, boolean ok) {}
 
     private final java.util.concurrent.ExecutorService executorPool =
-            Executors.newFixedThreadPool(4);
+            Executors.newFixedThreadPool(4, r -> {
+                Thread t = new Thread(r, "pipeline-diag");
+                t.setDaemon(true);
+                return t;
+            });
+
+    @PreDestroy
+    public void shutdown() {
+        executorPool.shutdown();
+        try { executorPool.awaitTermination(10, TimeUnit.SECONDS); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+    }
 
     private TaskResult executeTask(TodoItem item) {
         DiagnoserAgent diagnoser = routeByTags(item.tags());
@@ -243,13 +260,44 @@ public class AgentWorkflowService {
     // ── Planner 调用 + JSON 解析 ──
 
     private List<TodoItem> planWithRag(String msg, String sessionId) {
-        StringBuilder ctx = new StringBuilder();
-        // 注入 session 历史上下文
-        ctx.append(sessionHistoryManager.getContext(sessionId));
-        ctx.append(buildRagContext(msg));
-        ctx.append(querySnapshotResources());
-        String enriched = ctx.isEmpty() ? msg : ctx + "\n\n为以下问题制定排查计划：\n" + msg;
+        // 第 0 步：意图识别，非运维问题代码层硬拦截
+        if (!isOpsRelated(msg)) {
+            log.info("意图识别: 非运维问题, 拦截");
+            return List.of();
+        }
+
+        // 构造增强上下文: 历史 → 探针 → 问题 → 参考知识(放最后，不抢夺主任务注意力)
+        StringBuilder prefix = new StringBuilder();
+        prefix.append(sessionHistoryManager.getContext(sessionId));
+        prefix.append(querySnapshotResources());
+        String knowledge = buildRagContext(msg);
+
+        String enriched;
+        if (prefix.isEmpty() && knowledge.isEmpty()) {
+            enriched = msg;
+        } else {
+            enriched = prefix + "\n\n为以下问题制定排查计划：\n" + msg
+                    + (knowledge.isEmpty() ? "" : "\n\n" + knowledge);
+        }
         return plan(enriched.toString());
+    }
+
+    /** 轻量意图识别：先用极简 prompt 判断是否运维问题，非运维直接代码层拦截 */
+    private boolean isOpsRelated(String msg) {
+        try {
+            String answer = chatModel.chat(
+                    "判断以下用户消息是否是在请求运维诊断排查。运维诊断排查包括：\n"
+                    + "- 查看或分析数据库/缓存/服务器/应用接口的运行状态、性能指标、异常\n"
+                    + "- 通过探针检查接口调用历史、响应时间、异常日志、SQL 执行记录\n\n"
+                    + "不属于运维诊断的：闲聊、编程教学、非技术类问题。\n\n"
+                    + "严格只回答一个词：YES 或 NO。\n\n用户消息：" + msg);
+            boolean yes = "YES".equals(answer.trim().toUpperCase());
+            log.info("意图识别: msg=\"{}\" → {}", msg.length() > 50 ? msg.substring(0, 50) + "..." : msg, yes ? "YES" : "NO");
+            return yes;
+        } catch (Exception e) {
+            log.warn("意图识别调用失败, 降级放行: {}", e.getMessage());
+            return true; // 降级：网络故障时放行，宁可多查不漏查
+        }
     }
 
 //    /** 从探针 Snapshot MCP Server 拉取近期异常和慢调用作为 Planner 上下文 */
@@ -297,7 +345,7 @@ public class AgentWorkflowService {
     }
 
     private String buildRagContext(String query) {
-        List<String> results = ragService.search(query, 3);
+        List<String> results = ragService.search(query, 3, 0.5);
         if (results.isEmpty()) return "";
         StringBuilder sb = new StringBuilder("[参考知识]\n");
         for (int i = 0; i < results.size(); i++) {

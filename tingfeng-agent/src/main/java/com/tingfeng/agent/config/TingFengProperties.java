@@ -38,6 +38,7 @@ public class TingFengProperties {
         private String apiKey;
         private String baseUrl = "https://api.deepseek.com";
         private String modelName = "deepseek-v4-flash";
+        private boolean trackingEnabled = false;
 
         public String getApiKey() { return apiKey; }
         public void setApiKey(String apiKey) { this.apiKey = apiKey; }
@@ -47,6 +48,9 @@ public class TingFengProperties {
 
         public String getModelName() { return modelName; }
         public void setModelName(String modelName) { this.modelName = modelName; }
+
+        public boolean isTrackingEnabled() { return trackingEnabled; }
+        public void setTrackingEnabled(boolean trackingEnabled) { this.trackingEnabled = trackingEnabled; }
     }
 
     public static class Memory {

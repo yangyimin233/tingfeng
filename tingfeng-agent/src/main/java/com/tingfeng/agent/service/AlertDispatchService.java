@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import jakarta.annotation.PreDestroy;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -31,9 +33,27 @@ public class AlertDispatchService {
     private final TingFengProperties properties;
     private final RestTemplate restTemplate = new RestTemplate();
     /** 诊断 + 飞书推送的业务线程池 */
-    private final ExecutorService workPool = Executors.newFixedThreadPool(2);
+    private final ExecutorService workPool = Executors.newFixedThreadPool(2, r -> {
+        Thread t = new Thread(r, "alert-work");
+        t.setDaemon(true);
+        return t;
+    });
     /** 窗口定时器专用，只做 drain，不做耗时操作 */
-    private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor();
+    private final ScheduledExecutorService timer = Executors.newSingleThreadScheduledExecutor(r -> {
+        Thread t = new Thread(r, "alert-timer");
+        t.setDaemon(true);
+        return t;
+    });
+
+    @PreDestroy
+    public void shutdown() {
+        workPool.shutdown();
+        timer.shutdown();
+        try { workPool.awaitTermination(10, TimeUnit.SECONDS); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        try { timer.awaitTermination(5, TimeUnit.SECONDS); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+    }
 
     private final List<AlertmanagerPayload> buffer = new ArrayList<>();
     private final Object bufferLock = new Object();

@@ -46,7 +46,7 @@ public class ToolRegistryManager {
     /** 所有 Executor: tag → holder */
     private final Map<String, DynamicDiagnoserHolder> diagnosers = new ConcurrentHashMap<>();
     /** 标签定义: tag → (描述, 依赖的 client names) */
-    private final Map<String, TagDef> tagDefs = new LinkedHashMap<>();
+    private final Map<String, TagDef> tagDefs = new ConcurrentHashMap<>();
     /** 内置客户端的原始环境变量, 用于重新注册时自动恢复 */
     private final Map<String, Map<String, String>> builtinEnvs = new ConcurrentHashMap<>();
 
@@ -492,6 +492,7 @@ public class ToolRegistryManager {
                 你是一个运维诊断规划师。根据用户问题，输出结构化的排查计划。
 
                 如果用户问题与IT运维、Redis、MySQL、服务器诊断无关（比如闲聊、育儿、医疗等），返回空数组 [].
+                绝不将无关问题强行归类到已有标签下——cpu/mysql/redis/snapshot 标签只能用于对应领域的真实运维排查。
 
                 每条排查任务由 task (任务描述) 和 tags (工具标签列表) 组成。
                 每个任务通常只有一个标签，不同工具的问题拆成独立步骤。
@@ -509,11 +510,13 @@ public class ToolRegistryManager {
         msg.append("""
 
                 规则：
-                1. 只有与运维相关的问题才生成排查计划
-                2. task 描述要具体，指明要检查什么指标
-                3. 不超过5个步骤
-                4. 严格返回 JSON 数组格式，只输出 JSON，不要其他内容
-                5. 只能使用上面列出的标签，不要编造标签名
+                1. 首先判断问题是否与 IT 运维相关。如不相关，直接返回 [] 并停止
+                2. 只有与运维相关的问题才生成排查计划
+                3. task 描述要具体，指明要检查什么指标
+                4. 不超过5个步骤
+                5. 严格返回 JSON 数组格式，只输出 JSON，不要其他内容
+                6. 只能使用上面列出的标签，不要编造标签名
+                7. 绝不给无关问题(医学/育儿/法律等)打上运维标签，[] 就是正确回答
                 """);
 
         if (!active.isEmpty()) {

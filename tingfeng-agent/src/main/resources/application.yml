@@ -15,6 +15,8 @@ tingfeng:
     api-key: ${AI_API_KEY}
     base-url: ${AI_BASE_URL:https://api.deepseek.com}
     model-name: ${AI_MODEL:deepseek-v4-flash}
+    # Token 用量追踪 (仅单用户测试用, 并发会互相污染, 默认关闭)
+    tracking-enabled: ${LLM_TRACKING_ENABLED:false}
   memory:
     ttl-minutes: ${MEMORY_TTL_MINUTES:30}
   mysql:

@@ -12,24 +12,27 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * 统计每次诊断的 Token 消耗。
- * 通过 AgentWorkflowService 在诊断前后调用 reset() / getUsage() 获取单次消耗。
+ * 统计每次诊断的 Token 消耗 (仅单用户测试用, 默认关闭)。
+ * 开启后注意：并发请求会互相污染计数，不适合生产环境。
  */
 public class TokenUsageTracker implements ChatModelListener {
 
     private static final Logger log = LoggerFactory.getLogger(TokenUsageTracker.class);
 
+    private volatile boolean enabled;
     private final AtomicLong inputTokens = new AtomicLong();
     private final AtomicLong outputTokens = new AtomicLong();
     private final AtomicInteger callCount = new AtomicInteger();
 
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+
     @Override
     public void onRequest(ChatModelRequestContext ctx) {
-        // request 不做统计, response 里拿 token 数
     }
 
     @Override
     public void onResponse(ChatModelResponseContext ctx) {
+        if (!enabled) return;
         TokenUsage usage = ctx.chatResponse().tokenUsage();
         if (usage != null) {
             inputTokens.addAndGet(usage.inputTokenCount());
@@ -40,17 +43,15 @@ public class TokenUsageTracker implements ChatModelListener {
 
     @Override
     public void onError(ChatModelErrorContext ctx) {
-        // error 不计入 token
     }
 
-    /** 重置计数器 (每次诊断开始时调用) */
     public void reset() {
+        if (!enabled) return;
         inputTokens.set(0);
         outputTokens.set(0);
         callCount.set(0);
     }
 
-    /** 获取当前累计 token 用量 */
     public TokenUsage getUsage() {
         return new TokenUsage((int) inputTokens.get(), (int) outputTokens.get());
     }

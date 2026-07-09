@@ -16,8 +16,8 @@ public @interface TingFengMonitor {
         EXCEPTION_ONLY
     }
 
-    /** 上报策略，默认仅异常时上报 */
-    Strategy value() default Strategy.EXCEPTION_ONLY;
+    /** 上报策略，默认上报所有调用 */
+    Strategy value() default Strategy.ALL;
 
     /** 方法别名，留空则取类名#方法名 */
     String name() default "";

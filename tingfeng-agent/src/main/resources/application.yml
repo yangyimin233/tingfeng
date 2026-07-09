@@ -16,14 +16,14 @@ tingfeng:
     base-url: ${AI_BASE_URL:https://api.deepseek.com}
     model-name: ${AI_MODEL:deepseek-v4-flash}
     # Token 用量追踪 (仅单用户测试用, 并发会互相污染, 默认关闭)
-    tracking-enabled: ${LLM_TRACKING_ENABLED:false}
+    tracking-enabled: ${LLM_TRACKING_ENABLED:true}
   memory:
     ttl-minutes: ${MEMORY_TTL_MINUTES:30}
   mysql:
     host: ${MYSQL_HOST:localhost}
-    port: ${MYSQL_PORT:3306}
+    port: ${MYSQL_PORT:3307}
     user: ${MYSQL_USER:root}
-    pass: ${MYSQL_PASS:1234}
+    pass: ${MYSQL_PASS:root123}
     db: ${MYSQL_DB:}
   executor:
     # cloud = 云端 DeepSeek, local = 本地 Ollama
@@ -34,7 +34,7 @@ tingfeng:
     snapshot-context-size: ${SNAPSHOT_CONTEXT_SIZE:10}
   alert:
     # 是否启用告警 Webhook 接收 (Prometheus Alertmanager 回调)
-    enabled: ${ALERT_ENABLED:true}
+    enabled: ${ALERT_ENABLED:false}
     # 告警批处理窗口(秒), 窗口内收到的多条告警打包一次诊断; 设为 0 则收到即查
     batch-window-seconds: ${ALERT_BATCH_WINDOW:30}
     # 缓冲池上限, 超过此数量立即强制消费, 防止告警风暴打爆内存

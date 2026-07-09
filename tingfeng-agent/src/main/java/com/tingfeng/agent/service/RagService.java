@@ -138,6 +138,8 @@ public class RagService {
 
     private record ScoredDoc(String text, double score) {}
 
+    private static final double KW_MIN_SCORE = 0.5;
+
     private List<ScoredDoc> keywordSearch(String query, int topK) {
         if (docTexts.isEmpty()) return Collections.emptyList();
         List<String> qtokens = tokenize(query);
@@ -158,7 +160,7 @@ public class RagService {
 
         List<ScoredDoc> results = new ArrayList<>();
         for (int i = 0; i < scores.length; i++) {
-            if (scores[i] > 0) {
+            if (scores[i] > KW_MIN_SCORE) {
                 results.add(new ScoredDoc(docTexts.get(i), scores[i]));
             }
         }

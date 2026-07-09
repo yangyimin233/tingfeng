@@ -55,13 +55,13 @@ public class JvmMetricsCollector {
             if (os instanceof com.sun.management.OperatingSystemMXBean) {
                 com.sun.management.OperatingSystemMXBean sunOs =
                         (com.sun.management.OperatingSystemMXBean) os;
-                double sysLoad = sunOs.getCpuLoad();
+                double sysLoad = sunOs.getSystemCpuLoad();
                 double procLoad = sunOs.getProcessCpuLoad();
                 snap.setCpuSystem(sysLoad > 0 ? Math.round(sysLoad * 10000.0) / 100.0 : 0);
                 snap.setCpuProcess(procLoad > 0 ? Math.round(procLoad * 10000.0) / 100.0 : 0);
                 snap.setProcessors(sunOs.getAvailableProcessors());
-                snap.setSysFreeMb(sunOs.getFreeMemorySize() / (1024 * 1024));
-                snap.setSysTotalMb(sunOs.getTotalMemorySize() / (1024 * 1024));
+                snap.setSysFreeMb(sunOs.getFreePhysicalMemorySize() / (1024 * 1024));
+                snap.setSysTotalMb(sunOs.getTotalPhysicalMemorySize() / (1024 * 1024));
             }
 
             MemoryMXBean mem = ManagementFactory.getMemoryMXBean();

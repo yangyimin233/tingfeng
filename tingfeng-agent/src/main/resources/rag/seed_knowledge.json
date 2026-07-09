@@ -150,5 +150,13 @@
   {
     "title": "JVM 启动后性能逐渐下降分析",
     "content": "诊断: 1) cpu_info 观察 CPU 使用趋势; 2) java_memory 看堆是否持续增长; 3) java_threads 看线程数是否增长(线程泄漏); 4) jstat -gcutil 看 GC 频率变化; 5) 检查定时任务是否积累未关闭资源. 常见根因: 1) 内存泄漏致 FGC 越来越频繁; 2) 线程泄漏致上下文切换开销增大; 3) 连接池耗尽致请求排队; 4) 缓存无过期时间致无限增长; 5) 磁盘 IO 饱和. 预防: 缓存设 TTL、连接池设 leakDetectionThreshold、定期资源巡检."
+  },
+  {
+    "title": "应用接口调用排查 (探针 Snapshot)",
+    "content": "使用 TingFeng 探针快照工具排查接口调用: 1) snapshot: 查看最近方法调用历史(接口名、参数、响应时间、成功/失败状态); 2) snapshot errors: 筛选近期异常的接口请求, 包含异常栈和错误消息; 3) snapshot slow: 查看响应时间最慢的接口调用记录, 定位性能瓶颈; 4) snapshot method: 按具体方法名反查调用历史; 5) sqlStatements 字段: 查看接口执行期间 MyBatis 拦截到的 SQL 语句、参数、耗时和影响行数, 用于排查慢 SQL 或数据异常. 常见场景: 接口变慢 → 先看 snapshot slow 定位慢调用 → 再看 sqlStatements 分析 SQL → 最后看 errors 排除异常. 注意: snapshot 只能查询已探针采集的接口数据."
+  },
+  {
+    "title": "接口慢响应问题排查流程",
+    "content": "排查步骤: 1) 通过 snapshot 查看最近慢调用记录, 获取慢接口列表; 2) 选中目标慢接口, 查看其 sqlStatements 字段, 找出耗时最长的 SQL; 3) 使用 mysql slow_queries 工具验证是否有对应的数据库慢查询; 4) 使用 redis slow_log 检查是否 Redis 响应慢影响接口; 5) cpu_info 检查服务器 CPU 是否高负载. 关键指标: 接口 P99 > 1s 需关注, P99 > 3s 需立即排查. 根因分类: SQL 慢(缺索引/大表扫描) → 数据库层面优化; Redis 慢(大Key/阻塞命令) → 缓存层面优化; CPU 高(GC/死循环) → 代码或资源配置问题."
   }
 ]

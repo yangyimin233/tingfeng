@@ -49,6 +49,7 @@ public class JvmMetricsCollector {
     private void collect() {
         try {
             JvmMetricsSnapshot snap = new JvmMetricsSnapshot();
+            snap.setServerHost(properties.getServerHost());
             snap.setTimestamp(System.currentTimeMillis());
 
             OperatingSystemMXBean os = ManagementFactory.getOperatingSystemMXBean();

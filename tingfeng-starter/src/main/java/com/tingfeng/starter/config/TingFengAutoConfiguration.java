@@ -22,8 +22,9 @@ public class TingFengAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public TingFengMonitorAspect tingFengMonitorAspect(TingFengReportClient reportClient) {
-        return new TingFengMonitorAspect(reportClient);
+    public TingFengMonitorAspect tingFengMonitorAspect(TingFengReportClient reportClient,
+                                                         TingFengProperties properties) {
+        return new TingFengMonitorAspect(reportClient, properties);
     }
 
     @Bean

@@ -157,6 +157,10 @@
   },
   {
     "title": "接口慢响应问题排查流程",
-    "content": "排查步骤: 1) 通过 snapshot 查看最近慢调用记录, 获取慢接口列表; 2) 选中目标慢接口, 查看其 sqlStatements 字段, 找出耗时最长的 SQL; 3) 使用 mysql slow_queries 工具验证是否有对应的数据库慢查询; 4) 使用 redis slow_log 检查是否 Redis 响应慢影响接口; 5) cpu_info 检查服务器 CPU 是否高负载. 关键指标: 接口 P99 > 1s 需关注, P99 > 3s 需立即排查. 根因分类: SQL 慢(缺索引/大表扫描) → 数据库层面优化; Redis 慢(大Key/阻塞命令) → 缓存层面优化; CPU 高(GC/死循环) → 代码或资源配置问题."
+    "content": "排查步骤: 1) 通过 snapshot 查看最近慢调用记录, 获取慢接口列表; 2) 选中目标慢接口, 查看其 sqlStatements 字段, 找出耗时最长的 SQL; 3) 使用 mysql slow_queries 工具验证是否有对应的数据库慢查询; 4) 使用 redis slow_log 检查是否 Redis 响应慢影响接口; 5) cpu_info 检查服务器 CPU 是否高负载; 6) 通过 log 标签查询同时段服务器日志, 检查是否有 ERROR 或异常堆栈与接口变慢相关. 关键指标: 接口 P99 > 1s 需关注, P99 > 3s 需立即排查. 根因分类: SQL 慢(缺索引/大表扫描) → 数据库层面优化; Redis 慢(大Key/阻塞命令) → 缓存层面优化; CPU 高(GC/死循环) → 代码或资源配置问题; 应用异常(连接池耗尽/OOM/线程堆积) → 先查日志定位."
+  },
+  {
+    "title": "服务器日志排查 (Server Log)",
+    "content": "使用 log 标签排查服务器日志: 1) log_servers 查看已上报日志的服务器列表, 了解各服务器日志总量和类型分布; 2) log_recent_errors 获取指定服务器最近N条ERROR日志(默认最近24小时), 快速定位异常; 3) log_query 按服务器、时间范围、日志级别分页查询, 配合 snapshot 的 serverHost 字段找到慢接口对应的服务器; 4) log_stats 按服务器和级别统计日志分布, 用于发现系统性异常. 关键配合: snapshot 查到的慢接口 server_host → log_query 查同 server 同时段 ERROR → 自动关联根因(如 HikariPool 耗尽/Redis 超时/OOM). 注意: log_query 单次最多返回100条, 超限分页."
   }
 ]

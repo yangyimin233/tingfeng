@@ -21,7 +21,11 @@ public class JvmMetricsSnapshot {
     private long gcYoungTimeMs;     // Young GC 总耗时 ms
     private long gcOldCount;        // Full GC 次数
     private long gcOldTimeMs;       // Full GC 总耗时 ms
+    private String serverHost;      // 服务器标识
     private long timestamp;         // 采集时间戳
+
+    public String getServerHost() { return serverHost; }
+    public void setServerHost(String serverHost) { this.serverHost = serverHost; }
 
     public double getCpuSystem() { return cpuSystem; }
     public void setCpuSystem(double cpuSystem) { this.cpuSystem = cpuSystem; }

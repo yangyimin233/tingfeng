@@ -2,6 +2,7 @@ package com.tingfeng.starter.aop;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tingfeng.starter.annotation.TingFengMonitor;
+import com.tingfeng.starter.config.TingFengProperties;
 import com.tingfeng.starter.model.DiagnosticSnapshot;
 import com.tingfeng.starter.report.TingFengReportClient;
 import com.tingfeng.starter.trace.TingFengTraceContext;
@@ -26,11 +27,14 @@ public class TingFengMonitorAspect {
     private static final int MAX_RETURN_LENGTH = 5000;
 
     private final TingFengReportClient reportClient;
+    private final TingFengProperties properties;
     private final ObjectMapper objectMapper;
     private final ExecutorService reportExecutor;
 
-    public TingFengMonitorAspect(TingFengReportClient reportClient) {
+    public TingFengMonitorAspect(TingFengReportClient reportClient,
+                                  TingFengProperties properties) {
         this.reportClient = reportClient;
+        this.properties = properties;
         this.objectMapper = new ObjectMapper();
         this.reportExecutor = new ThreadPoolExecutor(
                 1, 2,
@@ -65,6 +69,7 @@ public class TingFengMonitorAspect {
         } finally {
             if (!success || tingFengMonitor.value() == TingFengMonitor.Strategy.ALL) {
                 DiagnosticSnapshot snapshot = new DiagnosticSnapshot();
+                snapshot.setServerHost(properties.getServerHost());
                 snapshot.setMethodName(methodName);
                 snapshot.setArgs(argsJson);
                 snapshot.setReturnValue(serializeReturn(returnValue));

@@ -66,8 +66,8 @@ public class ToolRegistryManager {
         this.plannerHolder = plannerHolder;
         this.reporterHolder = reporterHolder;
 
-        // 创建 5 个 Executor holder
-        for (String tag : List.of("mysql", "redis", "cpu", "snapshot", "full")) {
+        // 创建 6 个 Executor holder
+        for (String tag : List.of("mysql", "redis", "cpu", "snapshot", "log", "full")) {
             diagnosers.put(tag, new DynamicDiagnoserHolder(placeholderDiagnoser()));
         }
 
@@ -84,6 +84,9 @@ public class ToolRegistryManager {
         tagDefs.put("snapshot", new TagDef("snapshot",
                 "探针快照诊断（方法调用历史、异常记录、慢调用、响应时间等）",
                 List.of("snapshot-mcp")));
+        tagDefs.put("log", new TagDef("log",
+                "服务器日志诊断（错误日志、异常堆栈、系统日志查询等）",
+                List.of("server-log-mcp")));
 
         // 执行工具注册（后续新增执行工具只需加一行）
         executionTools.put("redis-mcp", List.of("redis_set_expire", "redis_delete_key"));
@@ -151,6 +154,7 @@ public class ToolRegistryManager {
 
         if (persistProps.isConfigured()) {
             registerBuiltinClient("snapshot-mcp", "com.tingfeng.agent.mcp.SnapshotMcpServer", persistEnv);
+            registerBuiltinClient("server-log-mcp", "com.tingfeng.agent.mcp.ServerLogMcpServer", persistEnv);
         }
 
         rebuildAll();

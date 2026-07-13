@@ -20,6 +20,9 @@ public class TingFengProperties {
     /** JVM 指标采集间隔(秒) */
     private int jvmCollectInterval = 15;
 
+    /** 服务器标识 (用于分布式环境下区分探针数据来源), 默认取 hostname */
+    private String serverHost = getDefaultHost();
+
     public String getEndpoint() { return endpoint; }
     public void setEndpoint(String endpoint) { this.endpoint = endpoint; }
 
@@ -34,4 +37,12 @@ public class TingFengProperties {
 
     public int getJvmCollectInterval() { return jvmCollectInterval; }
     public void setJvmCollectInterval(int jvmCollectInterval) { this.jvmCollectInterval = jvmCollectInterval; }
+
+    public String getServerHost() { return serverHost; }
+    public void setServerHost(String serverHost) { this.serverHost = serverHost; }
+
+    private static String getDefaultHost() {
+        try { return java.net.InetAddress.getLocalHost().getHostName(); }
+        catch (Exception e) { return "unknown"; }
+    }
 }

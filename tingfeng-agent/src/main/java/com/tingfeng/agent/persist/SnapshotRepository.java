@@ -19,6 +19,7 @@ public class SnapshotRepository {
             "CREATE TABLE IF NOT EXISTS tingfeng_snapshot (" +
             "  id            BIGINT AUTO_INCREMENT PRIMARY KEY," +
             "  trace_id      VARCHAR(32)  NOT NULL," +
+            "  server_host   VARCHAR(100) DEFAULT 'unknown'," +
             "  method_name   VARCHAR(255) NOT NULL," +
             "  args          MEDIUMTEXT," +
             "  return_value  MEDIUMTEXT," +
@@ -38,8 +39,8 @@ public class SnapshotRepository {
 
     private static final String INSERT_SQL =
             "INSERT INTO tingfeng_snapshot" +
-            "  (trace_id, method_name, args, return_value, request_time, rt_ms, success, error_msg, error_stack, sql_statements, timestamp)" +
-            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            "  (trace_id, server_host, method_name, args, return_value, request_time, rt_ms, success, error_msg, error_stack, sql_statements, timestamp)" +
+            " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     private final JdbcTemplate jdbc;
 
@@ -52,6 +53,7 @@ public class SnapshotRepository {
         try {
             jdbc.update(INSERT_SQL,
                     snapshot.get("traceId"),
+                    snapshot.getOrDefault("serverHost", "unknown"),
                     snapshot.get("methodName"),
                     truncate((String) snapshot.get("args"), 20000),
                     truncate((String) snapshot.get("returnValue"), 20000),

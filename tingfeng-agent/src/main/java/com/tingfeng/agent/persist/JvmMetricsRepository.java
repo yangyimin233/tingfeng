@@ -20,6 +20,7 @@ public class JvmMetricsRepository {
     private static final String DDL =
             "CREATE TABLE IF NOT EXISTS tingfeng_jvm_metrics (" +
             "  id             BIGINT AUTO_INCREMENT PRIMARY KEY," +
+            "  server_host    VARCHAR(100) DEFAULT 'unknown'," +
             "  cpu_system     DOUBLE," +
             "  cpu_process    DOUBLE," +
             "  processors     INT," +
@@ -43,11 +44,11 @@ public class JvmMetricsRepository {
 
     private static final String INSERT_SQL =
             "INSERT INTO tingfeng_jvm_metrics" +
-            " (cpu_system, cpu_process, processors, heap_used_mb, heap_max_mb," +
+            " (server_host, cpu_system, cpu_process, processors, heap_used_mb, heap_max_mb," +
             "  non_heap_used_mb, sys_free_mb, sys_total_mb, thread_count, thread_peak," +
             "  daemon_threads, deadlocked, gc_young_count, gc_young_time_ms," +
             "  gc_old_count, gc_old_time_ms, timestamp)" +
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
 
     private final JdbcTemplate jdbc;
 
@@ -59,6 +60,7 @@ public class JvmMetricsRepository {
     public void save(Map<String, Object> metrics) {
         try {
             jdbc.update(INSERT_SQL,
+                    metrics.getOrDefault("serverHost", "unknown"),
                     toDouble(metrics.get("cpuSystem")),
                     toDouble(metrics.get("cpuProcess")),
                     toInt(metrics.get("processors")),
@@ -128,6 +130,17 @@ public class JvmMetricsRepository {
                     "  created_at    DATETIME DEFAULT CURRENT_TIMESTAMP," +
                     "  INDEX idx_tool (tool_name)," +
                     "  INDEX idx_call_time (call_time)" +
+                    ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+            jdbc.execute("CREATE TABLE IF NOT EXISTS server_logs (" +
+                    "  id            BIGINT AUTO_INCREMENT PRIMARY KEY," +
+                    "  server_host   VARCHAR(100) NOT NULL," +
+                    "  log_file      VARCHAR(255) NOT NULL," +
+                    "  log_level     VARCHAR(10) DEFAULT 'INFO'," +
+                    "  log_message   MEDIUMTEXT," +
+                    "  log_timestamp BIGINT NOT NULL," +
+                    "  collected_at  DATETIME DEFAULT CURRENT_TIMESTAMP," +
+                    "  INDEX idx_server_time (server_host, log_timestamp)," +
+                    "  INDEX idx_level_time (log_level, log_timestamp)" +
                     ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
             jdbc.execute("CREATE TABLE IF NOT EXISTS tingfeng_execution_log (" +
                     "  id            BIGINT AUTO_INCREMENT PRIMARY KEY," +

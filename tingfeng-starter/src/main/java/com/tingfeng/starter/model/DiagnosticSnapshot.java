@@ -69,6 +69,12 @@ public class DiagnosticSnapshot {
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
 
+    /** 服务器标识 */
+    private String serverHost;
+
+    public String getServerHost() { return serverHost; }
+    public void setServerHost(String serverHost) { this.serverHost = serverHost; }
+
     /** 本次请求中 MyBatis 拦截的 SQL 列表 (JSON 数组) */
     private String sqlStatements;
 

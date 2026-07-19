@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+import com.tingfeng.agent.util.SensitiveDataMasker;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -30,6 +32,7 @@ import java.util.List;
 public class MySqlMcpServer {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final SensitiveDataMasker MASKER = SensitiveDataMasker.defaultMasker();
 
     public static void main(String[] args) {
         // stdout 必须是干净的 JSON —— 日志走 stderr
@@ -231,6 +234,8 @@ public class MySqlMcpServer {
                     sendError(requestId, -32602, "Unknown tool: " + toolName);
                     return;
             }
+
+            text = MASKER.maskJson(text);
 
             logToolCall(toolName, arguments.toString(), text, (int)(System.currentTimeMillis() - start), true, null);
 

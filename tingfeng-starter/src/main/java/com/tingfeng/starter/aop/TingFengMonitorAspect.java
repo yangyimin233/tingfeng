@@ -5,6 +5,7 @@ import com.tingfeng.starter.annotation.TingFengMonitor;
 import com.tingfeng.starter.config.TingFengProperties;
 import com.tingfeng.starter.model.DiagnosticSnapshot;
 import com.tingfeng.starter.report.TingFengReportClient;
+import com.tingfeng.starter.util.SensitiveDataMasker;
 import com.tingfeng.starter.trace.TingFengTraceContext;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -28,6 +29,7 @@ public class TingFengMonitorAspect {
 
     private final TingFengReportClient reportClient;
     private final TingFengProperties properties;
+    private final SensitiveDataMasker masker;
     private final ObjectMapper objectMapper;
     private final ExecutorService reportExecutor;
 
@@ -35,6 +37,7 @@ public class TingFengMonitorAspect {
                                   TingFengProperties properties) {
         this.reportClient = reportClient;
         this.properties = properties;
+        this.masker = SensitiveDataMasker.defaultMasker();
         this.objectMapper = new ObjectMapper();
         this.reportExecutor = new ThreadPoolExecutor(
                 1, 2,
@@ -111,7 +114,10 @@ public class TingFengMonitorAspect {
     }
 
     private String serialize(Object obj) {
-        try { return objectMapper.writeValueAsString(obj); }
+        try {
+            String json = objectMapper.writeValueAsString(obj);
+            return masker.maskJson(json);
+        }
         catch (Exception e) { return "[]"; }
     }
 
@@ -119,10 +125,10 @@ public class TingFengMonitorAspect {
         if (returnValue == null) return null;
         try {
             String json = objectMapper.writeValueAsString(returnValue);
-            return json.length() > MAX_RETURN_LENGTH
-                    ? json.substring(0, MAX_RETURN_LENGTH) + "...(truncated)" : json;
+            return masker.maskJson(json.length() > MAX_RETURN_LENGTH
+                    ? json.substring(0, MAX_RETURN_LENGTH) + "...(truncated)" : json);
         } catch (Exception e) {
-            return String.valueOf(returnValue);
+            return masker.mask(String.valueOf(returnValue));
         }
     }
 

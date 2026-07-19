@@ -21,9 +21,9 @@ tingfeng:
     ttl-minutes: ${MEMORY_TTL_MINUTES:30}
   mysql:
     host: ${MYSQL_HOST:localhost}
-    port: ${MYSQL_PORT:3307}
+    port: ${MYSQL_PORT:3306}
     user: ${MYSQL_USER:root}
-    pass: ${MYSQL_PASS:root123}
+    pass: ${MYSQL_PASS:1234}
     db: ${MYSQL_DB:}
   executor:
     # cloud = 云端 DeepSeek, local = 本地 Ollama

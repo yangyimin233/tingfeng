@@ -25,6 +25,8 @@ import java.util.Map;
 public class ServerLogMcpServer {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final com.tingfeng.agent.util.SensitiveDataMasker MASKER =
+            com.tingfeng.agent.util.SensitiveDataMasker.defaultMasker();
     private static final int MAX_RESULTS = 100;
 
     public static void main(String[] args) {
@@ -117,7 +119,7 @@ public class ServerLogMcpServer {
                 case "log_recent_errors" -> logRecentErrors(args);
                 default -> "ERROR: 未知工具 " + toolName;
             };
-            sendToolResult(requestId, result);
+            sendToolResult(requestId, MASKER.maskJson(result));
         } catch (Exception e) {
             sendToolResult(requestId, "ERROR: " + e.getMessage());
         }

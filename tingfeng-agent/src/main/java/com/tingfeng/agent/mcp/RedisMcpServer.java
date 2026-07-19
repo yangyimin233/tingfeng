@@ -1,5 +1,6 @@
 package com.tingfeng.agent.mcp;
 
+import com.tingfeng.agent.util.SensitiveDataMasker;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -33,6 +34,7 @@ import java.util.List;
 public class RedisMcpServer {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
+    private static final SensitiveDataMasker MASKER = SensitiveDataMasker.defaultMasker();
     private static volatile JedisPool pool;
 
     public static void main(String[] args) {
@@ -175,6 +177,7 @@ public class RedisMcpServer {
                 default -> { sendError(requestId, -32602, "Unknown tool: " + toolName); yield null; }
             };
             if (text == null) return;
+            text = MASKER.maskJson(text);
 
             logToolCall(toolName, args.toString(), text, (int)(System.currentTimeMillis() - start), true, null);
 

@@ -479,6 +479,7 @@ public class ToolRegistryManager {
         } else {
             agent = AiServices.builder(DiagnoserAgent.class)
                     .chatModel(model)
+//                    .maxSequentialToolInvocations(5)
                     .toolProvider(McpToolProvider.builder()
                             .mcpClients(list.toArray(McpClient[]::new))
                             .failIfOneServerFails(false)
